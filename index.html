@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NX Aviator Signal & Ghost Chain</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Hind+Siliguri:wght@400;600;700&family=Poppins:wght@400;600&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase SDK (Reliable Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #050b14, #0b192c, #02060c);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #ffffff;
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .phone-frame {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 840px;
+            background: rgba(8, 15, 28, 0.92);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(0, 243, 255, 0.3);
+            border-radius: 35px;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(0, 243, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 25px 25px 35px 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .lang-switch {
+            display: flex;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .lang-btn {
+            padding: 5px 10px;
+            background: transparent;
+            border: none;
+            color: #00f3ff;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .lang-btn.active {
+            background: #00f3ff;
+            color: #000;
+            box-shadow: 0 0 10px #00f3ff;
+        }
+
+        .live-time {
+            color: #ffcc00;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
+            background: rgba(255, 204, 0, 0.1);
+            padding: 5px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 204, 0, 0.3);
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #ffe600;
+            text-shadow: 0 0 10px rgba(255, 230, 0, 0.7), 0 0 20px rgba(255, 100, 0, 0.5);
+            animation: pulseTitle 2s infinite alternate;
+            margin-top: -5px;
+        }
+
+        @keyframes pulseTitle {
+            0% { text-shadow: 0 0 10px rgba(255, 230, 0, 0.5); }
+            100% { text-shadow: 0 0 20px rgba(255, 230, 0, 0.9), 0 0 35px rgba(255, 0, 128, 0.6); }
+        }
+
+        .logo-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2px 0;
+        }
+
+        .radar-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(0, 243, 255, 0.5);
+            border-radius: 50%;
+            animation: rotateRadar 10s linear infinite;
+        }
+
+        .radar-ring:nth-child(2) {
+            width: 125%;
+            height: 125%;
+            border: 1px dotted rgba(255, 0, 128, 0.6);
+            animation: rotateRadarRev 14s linear infinite;
+        }
+
+        @keyframes rotateRadar { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotateRadarRev { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+
+        .orbit-dot {
+            position: absolute; width: 8px; height: 8px; background: #ff0055; border-radius: 50%; box-shadow: 0 0 10px #ff0055; top: 10px; left: 25px; animation: pulseDot 2s infinite alternate;
+        }
+        .orbit-dot-2 {
+            position: absolute; width: 10px; height: 10px; background: #00ffcc; border-radius: 50%; box-shadow: 0 0 12px #00ffcc; bottom: 15px; right: 20px; animation: pulseDot 1.5s infinite alternate;
+        }
+        @keyframes pulseDot { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(1.4); opacity: 1; } }
+
+        .center-logo {
+            width: 105px; height: 105px; border-radius: 50%; background: radial-gradient(circle, #ff2a00 0%, #1a0033 70%, #000 100%); border: 3px solid #ffcc00; display: flex; justify-content: center; align-items: center; font-size: 30px; font-weight: 900; color: #fff; text-shadow: 0 0 10px #ff0000; z-index: 2; position: relative; overflow: hidden; animation: centerLogoAnimate 4s ease-in-out infinite alternate;
+        }
+        .center-logo::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(60deg, transparent 30%, rgba(0, 243, 255, 0.4) 45%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 0, 128, 0.4) 55%, transparent 70%); transform: rotate(30deg); animation: lightSweep 2.5s linear infinite; pointer-events: none;
+        }
+
+        @keyframes lightSweep { 0% { transform: translateY(-100%) rotate(30deg); } 100% { transform: translateY(100%) rotate(30deg); } }
+        @keyframes centerLogoAnimate { 0% { transform: scale(0.95) rotate(0deg); box-shadow: 0 0 15px rgba(255, 204, 0, 0.5), inset 0 0 10px rgba(255, 0, 0, 0.5); } 50% { transform: scale(1.05) rotate(5deg); box-shadow: 0 0 35px rgba(0, 243, 255, 0.9), 0 0 20px rgba(255, 0, 128, 0.8), inset 0 0 15px rgba(0, 243, 255, 0.8); } 100% { transform: scale(0.95) rotate(-5deg); box-shadow: 0 0 25px rgba(255, 215, 0, 0.8), inset 0 0 10px rgba(255, 204, 0, 0.6); } }
+
+        .controls-group { width: 100%; display: flex; flex-direction: column; gap: 12px; position: relative; }
+        .floating-notice { position: absolute; top: -38px; left: 0; width: 100%; background: linear-gradient(135deg, rgba(255, 0, 85, 0.95), rgba(255, 140, 0, 0.95)); color: #fff; font-family: 'Hind Siliguri', sans-serif; font-size: 13px; font-weight: 600; text-align: center; padding: 6px 10px; border-radius: 15px; box-shadow: 0 0 15px rgba(255, 0, 85, 0.6); opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity 0.1s ease, transform 0.1s ease; z-index: 10; }
+        .floating-notice.show { opacity: 1; transform: translateY(0); }
+
+        .input-box { width: 100%; padding: 16px 20px; background: rgba(10, 22, 40, 0.9); border: 2px solid rgba(0, 243, 255, 0.4); border-radius: 35px; color: #00f3ff; font-size: 14px; text-align: center; letter-spacing: 2px; outline: none; box-shadow: 0 0 15px rgba(0, 243, 255, 0.15), inset 0 0 10px rgba(0, 243, 255, 0.1); }
+        .input-box::placeholder { color: rgba(0, 243, 255, 0.6); }
+        .input-box:focus { border-color: #00f3ff; box-shadow: 0 0 20px rgba(0, 243, 255, 0.7), inset 0 0 10px rgba(0, 243, 255, 0.3); }
+
+        .btn { width: 100%; padding: 17px 20px; border-radius: 35px; font-size: 15px; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; border: none; text-transform: uppercase; transition: transform 0.05s ease, box-shadow 0.05s ease; }
+        .btn:active { transform: scale(0.96); }
+        #input-site-name { margin-bottom: 10px; }
+        .btn-login { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+        .btn-login:hover { box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
+        .btn-get { background: linear-gradient(135deg, #00ff87, #60efff); color: #000; box-shadow: 0 0 20px rgba(0, 255, 135, 0.4); }
+        .btn-get:hover { box-shadow: 0 0 30px rgba(0, 255, 135, 0.9); }
+        .btn-contact { background: rgba(10, 22, 40, 0.9); color: #00f3ff; border: 2px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
+        .btn-contact:hover { background: rgba(0, 243, 255, 0.15); border-color: #00f3ff; box-shadow: 0 0 25px rgba(0, 243, 255, 0.6); }
+
+        .notice-box { width: 100%; padding: 12px 15px; background: rgba(20, 25, 35, 0.8); border: 1.5px solid rgba(255, 204, 0, 0.4); border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Hind Siliguri', sans-serif; font-size: 13.5px; color: #ffcc00; text-align: center; box-shadow: 0 0 15px rgba(255, 204, 0, 0.15); cursor: pointer; transition: transform 0.05s ease, background 0.1s ease; }
+        .notice-box:active { transform: scale(0.96); }
+        .notice-box:hover { background: rgba(255, 204, 0, 0.15); }
+        .play-icon { font-size: 16px; }
+
+        /* Fullscreen Video Modal Styles */
+        .video-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 11, 20, 0.98); backdrop-filter: blur(12px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; padding: 10px; }
+        .video-modal.show { opacity: 1; pointer-events: auto; }
+        .video-modal-header { width: 100%; max-width: 380px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; }
+        .video-modal-title { font-family: 'Hind Siliguri', sans-serif; font-size: 14px; font-weight: 600; color: #00f3ff; text-shadow: 0 0 8px rgba(0, 243, 255, 0.5); }
+        .close-cross-btn { background: rgba(255, 0, 85, 0.2); border: 1.5px solid #ff0055; color: #ff0055; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .video-modal video { width: 100%; max-width: 380px; height: auto; max-height: 80vh; border-radius: 15px; border: 2px solid #00f3ff; outline: none; box-shadow: 0 0 25px rgba(0, 243, 255, 0.4); background: #000; }
+
+        :root{ --bg: #02050e; --panel: rgba(10, 18, 36, 0.92); --cyan: #00f0ff; --green: #00ff9d; --magenta: #ff007f; --gold: #ffc74a; --red: #ff3366; --txt: #f8fafc; --muted: #94a3b8; --border: rgba(0, 240, 255, 0.18); --shadow: 0 25px 60px -15px rgba(0,0,0,0.95); }
+        .apm-wrap { position: absolute; inset: 0; z-index: 50; max-width: 400px; margin: 0 auto; font-family: 'Rajdhani','Hind Siliguri',sans-serif; color: var(--txt); background: rgba(8, 15, 28, 0.98); padding: 20px; overflow-y: auto; display: none; flex-direction: column; }
+        .apm-wrap.show { display: flex; }
+        .apm-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .apm-langbtn { border: 1.5px solid rgba(0,255,157,0.5); background: rgba(0,255,157,0.08); color: var(--green); font-weight: 700; font-size: 14px; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+        .apm-clock { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--panel); padding: 6px 12px; border-radius: 999px; font-family: 'Orbitron',sans-serif; font-size: 11px; }
+        .apm-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: apm-pulse 1.4s infinite; }
+        @keyframes apm-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.8)} }
+        
+        .apm-action-group { display: flex; align-items: center; gap: 8px; }
+        .apm-backbtn { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid rgba(0,255,157,0.5); background: rgba(0,255,157,0.08); color: var(--green); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        .apm-card { position: relative; border-radius: 20px; padding: 18px 14px; background: var(--panel); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 15px; }
+        .apm-card.green { border-color: rgba(0,255,157,0.35); }
+        .apm-center { text-align: center; }
+        .apm-mut { color: var(--muted); }
+        .apm-inp { width: 100%; background: rgba(0,0,0,0.6); border: 1.4px solid rgba(0,240,255,0.25); border-radius: 14px; padding: 14px; color: var(--txt); font-size: 14px; text-align: center; outline: none; margin-bottom: 12px; }
+        .apm-inp.g { border-color: rgba(0,255,157,0.5); border-radius: 999px; }
+        .apm-btn { position: relative; width: 100%; border: none; border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 800; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .apm-btn.gold { background: linear-gradient(135deg, #ffc74a, #f59e0b); color: #1c1300; }
+        .apm-btn.greenline { background: linear-gradient(135deg, rgba(0,255,157,0.15), rgba(0,255,157,0.05)); border: 1.5px solid var(--green); color: var(--green); border-radius: 999px; }
+        .apm-btn.ghost { background: rgba(255,255,255,0.05); border: 1.4px solid var(--border); color: var(--txt); }
+        .apm-title-g { font-weight: 800; font-size: 18px; color: var(--green); text-align: center; margin: 2px 0 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .apm-note { display: flex; gap: 10px; align-items: center; background: rgba(0,255,157,0.06); border-left: 3px solid var(--green); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; font-size: 13.5px; }
+        .apm-note .i { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--green); color: var(--green); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
+        .apm-dashh { height: 1px; border-top: 1px dashed rgba(255,255,255,0.12); margin: 14px 0; }
+        .apm-gamebtn { width: 100%; display: flex; align-items: center; gap: 12px; border-radius: 999px; padding: 10px 14px; margin-bottom: 12px; background: rgba(0,0,0,0.65); cursor: pointer; border: 1.5px solid var(--border); }
+        .apm-gamebtn img { width: 50px; height: 44px; object-fit: cover; border-radius: 10px; }
+        .apm-gamebtn span { flex: 1; text-align: center; font-weight: 800; font-size: 16px; letter-spacing: 2px; }
+        .apm-gamebtn.g { border-color: rgba(0,255,157,0.6); } .apm-gamebtn.g span { color: var(--green); }
+        .apm-gamebtn.r { border-color: rgba(255,59,95,0.6); } .apm-gamebtn.r span { color: var(--red); }
+        .apm-moon { width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 50%; background: var(--gold); -webkit-mask: radial-gradient(circle at 78% 32%, transparent 42%, #000 43%); mask: radial-gradient(circle at 78% 32%, transparent 42%, #000 43%); }
+        .apm-pkg { position: relative; margin: 18px 0 14px; padding: 16px 14px; border-radius: 16px; cursor: pointer; border: 1.8px solid var(--border); background: rgba(0,0,0,0.6); }
+        .apm-pkg.hot { border-color: rgba(0,255,157,0.7); }
+        .apm-pkg.sel { border-color: var(--green); background: rgba(0,255,157,0.1); }
+        .apm-pkg .hotbadge { position: absolute; top: -14px; left: 12px; display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #fff; background: linear-gradient(90deg, #ff2d16, #ff8a1f 60%, var(--gold)); }
+        .apm-pkg .pkgrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .apm-pkg .nm { font-weight: 700; font-size: 16px; }
+        .apm-pkg .pr { font-weight: 800; font-size: 17px; font-family: 'Orbitron',sans-serif; color: var(--green); }
+        .apm-rvhead { display: flex; align-items: center; justify-content: space-between; margin: 20px 0 10px; }
+        .apm-rvhead b { color: var(--green); font-size: 16px; }
+        .apm-live { font-size: 12px; color: #bfe9cf; display: flex; align-items: center; gap: 6px; }
+        .apm-rv { border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px; margin-bottom: 10px; background: rgba(0,0,0,0.45); }
+        .apm-rv .city { color: var(--cyan); font-size: 11.5px; font-weight: 700; margin-bottom: 4px; }
+        .apm-rv .row { display: flex; align-items: center; gap: 10px; }
+        .apm-av { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--green), #00b45e); color: #03210f; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+        .apm-rv .nm { font-weight: 700; font-size: 14px; }
+        .apm-rv .stars { margin-left: auto; display: flex; gap: 2px; }
+        .apm-rv .stars svg { width: 12px; height: 12px; fill: #ffc74a; }
+        .apm-rv p { margin: 6px 0 2px; font-size: 13px; color: #cbd5e1; }
+        .apm-rv small { color: #64748b; font-size: 11px; }
+        .apm-pm { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; cursor: pointer; margin-bottom: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); }
+        .apm-pm img { width: 46px; height: 46px; border-radius: 12px; background: #fff; object-fit: contain; padding: 4px; }
+        .apm-pm b { font-size: 15px; } .apm-pm small { color: #94a3b8; font-size: 12px; } .apm-pm .arw { margin-left: auto; color: #64748b; }
+        
+        .s888-box{background:#111c2e;border:1.5px solid rgba(255,255,255,0.12);border-radius:18px;padding:14px;box-shadow:var(--shadow);overflow:hidden}
+        .s888-topbar{background:#0d5c36;color:#fff;padding:8px 12px;border-radius:8px;margin-bottom:12px;font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+        .s888-topbar span.pay-badge{background:#fff;color:#0d5c36;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:900}
+        .s888-warn{color:#ff3b30;font-weight:700;font-size:12.5px;margin-bottom:12px;text-align:center}
+        .s888-header-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;color:#fff;font-weight:800;font-size:15px;margin-bottom:12px}
+        .s888-header-btn.bkash{background:#e2136e} .s888-header-btn.nagad{background:#ec5c16}
+        .s888-header-btn img{width:32px;height:32px;border-radius:6px;background:#fff;padding:2px;object-fit:contain}
+        .s888-label{font-weight:800;font-size:13.5px;margin-bottom:4px;color:var(--txt)}
+        .s888-desc{font-size:12px;color:#cbd5e1;margin-bottom:8px;}
+        .s888-number-row{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.5);border:1.4px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 12px;margin-bottom:14px}
+        .s888-number-row b{font-family:'Orbitron',sans-serif;font-size:16px;color:#fff;letter-spacing:1px}
+        .s888-copy-btn{background:#fff;color:#111;border:none;border-radius:6px;padding:5px 12px;font-weight:800;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:auto;}
+        .s888-input{width:100%;background:rgba(0,0,0,0.6);border:1.5px solid #ff3b30;border-radius:10px;padding:12px;color:#fff;font-size:13.5px;text-align:center;outline:none;margin-bottom:12px}
+        .s888-submit{width:100%;background:#fff;color:#222;font-weight:800;font-size:14px;padding:12px;border:none;border-radius:10px;cursor:pointer;margin-bottom:12px}
+        .s888-footer-warn{color:#ff6b81;font-size:11.5px;font-weight:700;margin-bottom:10px;text-align:center}
+        .s888-footer-note{font-size:11px;color:#94a3b8;text-align:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:8px}
+        
+        .apm-qr{display:block; width:160px; height:160px; background:#fff; border-radius:14px; padding:6px; margin:0 auto 14px; border:3px solid var(--green);}
+        
+        .apm-kv{border:1.4px solid rgba(0,255,157,0.3);border-radius:14px;padding:4px 12px;margin-bottom:14px;background:rgba(0,0,0,0.45)}
+        .apm-kv .k{color:var(--green);font-size:11px;letter-spacing:1.5px;font-weight:700;margin-top:10px}
+        .apm-kv .v{font-size:14px;font-weight:700;word-break:break-all;padding:4px 0 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.08)}
+        .apm-timer{border:2px dashed var(--green);border-radius:999px;padding:12px;text-align:center;font-family:'Orbitron',sans-serif;font-size:26px;color:var(--green);letter-spacing:3px;margin-bottom:16px}
+        .apm-spin{width:50px;height:50px;margin:0 auto 16px;border-radius:50%;border:5px solid rgba(0,255,157,0.15);border-top-color:var(--green);animation:spin 1s linear infinite}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .apm-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(8px);background:rgba(6,10,20,0.95);border:1.4px solid var(--green);color:var(--green);padding:10px 20px;border-radius:999px;z-index:100000;font-weight:700;opacity:0;pointer-events:none;transition:.25s;font-size:13px;}
+        .apm-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+        .apm-err{color:#ff6b81;text-align:center;font-weight:700;margin-bottom:10px;min-height:18px;font-size:13px}
+        .apm-offline{display:none;text-align:center;font-size:12px;color:#ffb4a0;background:rgba(255,90,60,0.12);border:1px solid rgba(255,90,60,0.35);border-radius:10px;padding:6px;margin-bottom:10px}
+        .apm-offline.on{display:block}
+        
+        #maintOverlay{position:absolute;inset:0;background:rgba(2,5,14,0.98);z-index:999999;display:none;align-items:center;justify-content:center;padding:20px}
+        #maintOverlay.show{display:flex}
+        .maint-card{position:relative;background:var(--panel);border:2px solid var(--red);border-radius:20px;padding:24px 16px;text-align:center;max-width:360px;width:100%;}
+        .hide{display:none!important}
+    </style>
+
+<style id="transferred-signal-dashboard">
+.phone-frame.signal-active > #loginTopBar,
+.phone-frame.signal-active > #txt-title,
+.phone-frame.signal-active > #loginLogoContainer,
+.phone-frame.signal-active > #loginControlsGroup,
+.phone-frame.signal-active > #loginNoticeBox,
+.phone-frame.signal-active > #videoModal,
+.phone-frame.signal-active > #secondAppContainer { display:none !important; }
+#signalDashboard{position:absolute;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:24px 16px 22px;background:radial-gradient(ellipse at 50% 22%,#18245a 0%,#10102c 34%,#080b1a 68%,#03050d 100%);color:#fff;isolation:isolate;contain:layout paint style;}
+#signalDashboard::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.22;background:radial-gradient(circle at 15% 20%,#00eaff 0 1px,transparent 2px),radial-gradient(circle at 80% 32%,#ff2fd1 0 1px,transparent 2px),radial-gradient(circle at 34% 78%,#a5ff00 0 1px,transparent 2px),radial-gradient(circle at 74% 86%,#ffc400 0 1px,transparent 2px);background-size:76px 88px,103px 94px,121px 110px,89px 123px;}
+#signalDashboard::after{content:"";position:absolute;inset:-40% -80%;z-index:0;pointer-events:none;background:linear-gradient(115deg,transparent 43%,rgba(0,234,255,.055) 47%,rgba(255,47,209,.08) 49%,transparent 54%);transform:translateX(-20%);animation:neonSweep 9s ease-in-out infinite alternate;}
+#signalDashboard>*{position:relative;z-index:1}.phone-frame.signal-active #signalDashboard{display:flex}
+.sig-top{width:100%;display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:900;letter-spacing:1.5px;color:#a8fbff;margin-bottom:15px}.sig-top span{display:flex;align-items:center;gap:7px}.sig-top span:before{content:"";width:7px;height:7px;border-radius:50%;background:#37ff9b;box-shadow:0 0 10px #37ff9b;animation:liveBlink 1.8s ease-in-out infinite}
+
+/* NEW LIVE TRIAL COUNTDOWN TIMER STYLE */
+.sig-trial-timer {
+    background: linear-gradient(135deg, rgba(255, 0, 128, 0.25), rgba(0, 243, 255, 0.2));
+    border: 1px solid rgba(255, 0, 128, 0.6);
+    color: #ff007f;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    box-shadow: 0 0 12px rgba(255, 0, 128, 0.4);
+    text-shadow: 0 0 8px rgba(255, 0, 128, 0.8);
+    display: none;
+}
+
+.sig-back{border:1px solid rgba(0,245,255,.65);background:linear-gradient(135deg,rgba(0,245,255,.16),rgba(140,70,255,.18));color:#fff;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer;box-shadow:inset 0 0 10px rgba(0,245,255,.08)}
+.sig-title{font-size:clamp(19px,5vw,25px);font-weight:1000;letter-spacing:1.8px;text-align:center;color:#fff;text-shadow:0 0 7px #00eaff,0 0 18px #7c3aed,0 0 30px rgba(255,45,149,.65);margin:0 0 12px}
+.sig-plane{font-size:39px;line-height:1;margin-bottom:8px;color:#eafcff;filter:drop-shadow(0 0 5px #00eaff) drop-shadow(0 0 12px #a855f7);animation:planeHover 3.4s ease-in-out infinite}
+.sig-orbit{position:relative;width:min(70vw,278px);height:min(70vw,278px);flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;background:radial-gradient(circle,rgba(16,22,57,.97) 0%,rgba(7,11,29,.92) 57%,rgba(8,12,30,.35) 72%,transparent 74%);isolation:isolate;}
+.sig-orbit::before{content:"";position:absolute;inset:8%;border-radius:50%;border:1px solid rgba(255,255,255,.11);box-shadow:0 0 20px rgba(0,234,255,.14),inset 0 0 20px rgba(168,85,247,.11);}
+.sig-orbit::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 8%,rgba(0,234,255,.03) 11%,rgba(0,234,255,.8) 14%,transparent 17% 32%,rgba(255,47,209,.8) 36%,transparent 39% 60%,rgba(255,213,74,.8) 64%,transparent 68% 82%,rgba(114,255,164,.8) 86%,transparent 90%);mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 1px));animation:sigSpin 4.8s linear infinite;opacity:.85;}
+.sig-ring{position:absolute;border-radius:50%;width:100%;height:100%;border:2px solid transparent;background:linear-gradient(#0b1028,#0b1028) padding-box,conic-gradient(from 20deg,#00f5ff,#4d6bff,#b84dff,#ff3eb5,#ffda55,#54ffad,#00f5ff) border-box;animation:sigSpin 5.2s linear infinite;box-shadow:0 0 9px rgba(0,245,255,.38),inset 0 0 8px rgba(255,255,255,.08);}
+.sig-ring::before{content:"";position:absolute;width:8px;height:8px;left:14%;top:7%;border-radius:50%;background:#fff;box-shadow:0 0 5px 2px #fff,0 0 13px 5px #00eaff,0 0 23px 7px #7c3aed;}
+.sig-ring::after{content:"";position:absolute;width:5px;height:5px;right:8%;bottom:21%;border-radius:50%;background:#fff;box-shadow:0 0 7px 2px #ff4dd8,0 0 15px 4px #ff4dd8;}
+.sig-ring.r2{width:82%;height:82%;background:linear-gradient(#0b1028,#0b1028) padding-box,conic-gradient(from 190deg,#ff3eb5,#ffda55,#a5ff55,#00f5ff,#7c4dff,#ff3eb5) border-box;animation:sigSpinReverse 3.8s linear infinite;box-shadow:0 0 10px rgba(255,62,181,.32),inset 0 0 9px rgba(255,255,255,.08);}
+.sig-ring.r2::before{width:6px;height:6px;left:5%;top:49%;box-shadow:0 0 7px 2px #fff,0 0 14px 4px #ff3eb5}.sig-ring.r2::after{right:19%;bottom:5%;box-shadow:0 0 7px 2px #fff,0 0 15px 4px #a5ff55}
+.sig-ring.r3{width:64%;height:64%;border-width:1px;opacity:.78;background:linear-gradient(#0b1028,#0b1028) padding-box,conic-gradient(#fff,#00eaff,#fff,#ff3eb5,#fff,#a5ff55,#fff) border-box;animation:sigSpin 8.5s linear infinite;box-shadow:0 0 8px rgba(255,255,255,.15)}
+.sig-value{position:relative;z-index:3;font-family:'Orbitron',sans-serif;font-size:clamp(42px,11vw,62px);font-weight:900;letter-spacing:-1px;color:#fff;text-shadow:0 0 5px #fff,0 0 13px #00eaff,0 0 24px #8b5cf6;animation:sigPulse 2.4s ease-in-out infinite;white-space:nowrap}
+.sig-value span{font-size:.52em;margin-left:2px;color:#bafaff;text-shadow:0 0 9px #00eaff}
+.sig-next{margin:0 auto 17px;padding:9px 16px;border:1px solid rgba(115,245,255,.62);border-radius:999px;background:linear-gradient(100deg,rgba(0,245,255,.12),rgba(139,92,246,.18),rgba(255,45,149,.12));color:#f3fdff;font-size:12px;font-weight:900;letter-spacing:1.2px;text-align:center;box-shadow:0 0 12px rgba(0,245,255,.1);}
+.sig-contacts{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:2px}.sig-contact{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:15px;text-decoration:none;color:#fff;font-size:14px;font-weight:900;border:1px solid rgba(255,255,255,.42);transform:translateZ(0)}
+.sig-contact.tg{background:linear-gradient(110deg,#00bdf2,#635bff,#db35c8,#00bdf2);background-size:220% 100%;animation:sigShine 7s linear infinite;box-shadow:0 5px 18px rgba(0,198,255,.17)}.sig-contact.wa{background:linear-gradient(110deg,#00a86b,#00bd84,#087f5b);box-shadow:0 5px 16px rgba(0,200,83,.15)}
+.sig-note{font-family:'Hind Siliguri',sans-serif;font-size:12px;text-align:center;color:#9fb7d8;margin-top:14px;line-height:1.5}
+@keyframes sigSpin{to{transform:rotate(360deg)}}@keyframes sigSpinReverse{to{transform:rotate(-360deg)}}
+@keyframes sigPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px rgba(0,245,255,.24))}50%{transform:scale(1.025);filter:drop-shadow(0 0 12px rgba(255,45,209,.38))}}
+@keyframes sigShine{to{background-position:220% center}}@keyframes planeHover{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-4px) rotate(3deg)}}@keyframes neonSweep{from{transform:translateX(-8%)}to{transform:translateX(8%)}}@keyframes liveBlink{0%,100%{opacity:1}50%{opacity:.45}}
+@media(max-height:680px){#signalDashboard{padding-top:12px}.sig-orbit{width:min(60vw,230px);height:min(60vw,230px)}.sig-title{margin-bottom:8px}.sig-plane{margin-bottom:5px}.sig-next{margin-bottom:11px}}
+@media(prefers-reduced-motion:reduce){#signalDashboard::after,.sig-plane,.sig-value,.sig-contact.tg,.sig-top span:before{animation:none!important}.sig-ring,.sig-orbit::after{animation-duration:18s!important}}
+</style>
+
+<style id="ultra-color-signal-upgrade">
+#signalDashboard{background:radial-gradient(ellipse at 50% 18%,#25206b 0%,#11143a 31%,#090d25 63%,#030611 100%);}
+#signalDashboard::before{opacity:.36;background-image:radial-gradient(circle at 12% 15%,#00f5ff 0 1.3px,transparent 2.8px),radial-gradient(circle at 83% 24%,#ff39d4 0 1.4px,transparent 3px),radial-gradient(circle at 28% 78%,#b8ff42 0 1.2px,transparent 2.8px),radial-gradient(circle at 74% 86%,#ffcf4a 0 1.3px,transparent 2.8px),radial-gradient(circle at 52% 48%,#a88bff 0 1px,transparent 2.5px);background-size:58px 67px,81px 76px,95px 88px,73px 91px,113px 103px;animation:starDrift 18s linear infinite;}
+#signalDashboard::after{background:linear-gradient(115deg,transparent 38%,rgba(0,245,255,.10) 44%,rgba(255,50,207,.15) 47%,rgba(255,222,90,.10) 50%,transparent 56%);animation:neonSweep 5.5s ease-in-out infinite alternate;}
+.sig-title{background:linear-gradient(90deg,#fff,#5cfaff,#e9a2ff,#ffe27b,#fff);background-size:250% auto;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 16px rgba(0,245,255,.25);animation:titleGlow 5s linear infinite;}
+.sig-orbit{filter:drop-shadow(0 0 8px rgba(0,245,255,.16));}
+.sig-orbit::before{inset:5%;border:1px solid rgba(255,255,255,.25);box-shadow:0 0 10px rgba(0,245,255,.30),0 0 26px rgba(255,46,210,.16),inset 0 0 24px rgba(168,85,247,.20);}
+.sig-orbit::after{inset:-1.5%;background:conic-gradient(from 0deg,transparent 0 4%,#00f5ff 7%,transparent 10% 18%,#ff36ce 22%,transparent 26% 38%,#ffe66b 42%,transparent 46% 59%,#7dff8a 63%,transparent 67% 78%,#9c75ff 82%,transparent 86% 94%,#00f5ff);opacity:.95;filter:drop-shadow(0 0 5px rgba(0,245,255,.7));animation:sigSpin 3.8s linear infinite;}
+.sig-ring{border-width:2px;background:linear-gradient(#0a102b,#0a102b) padding-box,conic-gradient(from 0deg,#00f5ff,#7a5cff,#ff3ac8,#ffdb62,#72ff93,#00f5ff) border-box;box-shadow:0 0 7px rgba(0,245,255,.45),0 0 17px rgba(168,85,247,.18),inset 0 0 12px rgba(255,255,255,.12);}
+.sig-ring::before{width:9px;height:9px;box-shadow:0 0 5px 2px #fff,0 0 13px 5px #00eaff,0 0 25px 8px #ff38d1;animation:beaconFlash 1.7s ease-in-out infinite alternate;}
+.sig-ring::after{width:6px;height:6px;box-shadow:0 0 7px 2px #fff,0 0 16px 5px #ffe05a,0 0 22px 7px #ff4ccf;animation:beaconFlash 1.25s ease-in-out infinite alternate-reverse;}
+.sig-ring.r2{background:linear-gradient(#0a102b,#0a102b) padding-box,conic-gradient(from 180deg,#ff3ac8,#ffdb62,#72ff93,#00f5ff,#7a5cff,#ff3ac8) border-box;box-shadow:0 0 11px rgba(255,62,181,.38),0 0 20px rgba(255,218,85,.12),inset 0 0 12px rgba(255,255,255,.12);animation:sigSpinReverse 3.1s linear infinite;}
+.sig-ring.r3{background:linear-gradient(#0a102b,#0a102b) padding-box,conic-gradient(#fff,#00f5ff,#fff,#ff3ac8,#fff,#a5ff55,#fff,#ffc857) border-box;box-shadow:0 0 10px rgba(255,255,255,.25);animation:sigSpin 6.8s linear infinite;}
+.sig-value{color:#fff;text-shadow:0 0 4px #fff,0 0 12px #00eaff,0 0 22px #a855f7,0 0 36px rgba(255,47,209,.65);animation:sigPulse 1.9s ease-in-out infinite;}
+.sig-next{border-color:rgba(255,255,255,.62);background:linear-gradient(100deg,rgba(0,245,255,.18),rgba(139,92,246,.24),rgba(255,45,149,.20),rgba(255,213,74,.14));box-shadow:0 0 12px rgba(0,245,255,.14),inset 0 0 12px rgba(255,255,255,.04);}
+.sig-contacts{gap:11px;}
+.sig-contact{position:relative;overflow:hidden;min-height:52px;box-shadow:0 5px 18px rgba(0,0,0,.22);transition:transform .18s ease,filter .18s ease;}
+.sig-contact::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.36) 48%,transparent 68%);transform:translateX(-130%);animation:buttonGlint 4.5s ease-in-out infinite;}
+.sig-contact:active{transform:scale(.98);filter:brightness(1.15);}
+.sig-contact.tg{background:linear-gradient(110deg,#00bdf2,#665bff,#d735d1,#00bdf2);background-size:250% 100%;animation:sigShine 4.5s linear infinite;box-shadow:0 0 18px rgba(0,198,255,.23);}
+.sig-contact.wa{background:linear-gradient(110deg,#00b86b,#18df86,#087b51,#00b86b);background-size:220% 100%;animation:sigShine 5.5s linear infinite;box-shadow:0 0 18px rgba(0,220,110,.22);}
+@keyframes starDrift{to{background-position:58px 67px,-81px 76px,95px -88px,-73px 91px,113px -103px}}
+@keyframes titleGlow{to{background-position:250% center}}
+@keyframes beaconFlash{from{opacity:.55;transform:scale(.82)}to{opacity:1;transform:scale(1.15)}}
+@keyframes buttonGlint{0%,55%{transform:translateX(-130%)}85%,100%{transform:translateX(130%)}}
+@media(prefers-reduced-motion:reduce){#signalDashboard::before,#signalDashboard::after,.sig-title,.sig-ring,.sig-orbit::after,.sig-value,.sig-contact,.sig-contact::before{animation:none!important}.sig-ring,.sig-orbit::after{transform:none!important}}
+</style>
+
+</head>
+<body>
+
+    <div class="phone-frame">
+        <!-- Maintenance Overlay -->
+        <div id="maintOverlay">
+          <div class="maint-card">
+            <div style="font-size:40px;margin-bottom:10px">⚠</div>
+            <div style="font-size:20px;font-weight:800;color:var(--red);margin-bottom:8px">অ্যাপের কাজ চলছে</div>
+            <div style="font-size:14px;color:#cbd5e1;" id="maintText">দুঃখিত, বর্তমানে সার্ভার ও অ্যাপের আপডেট বা মেইনটেন্যান্সের কাজ চলছে।</div>
+          </div>
+        </div>
+
+
+        <!-- Transferred signal dashboard: shown only after a valid expiring password -->
+        <section id="signalDashboard" aria-label="Signal dashboard">
+          <div class="sig-top">
+            <span>● LIVE SIGNAL</span>
+            <div class="sig-trial-timer" id="sigTrialTimer">TRIAL: 10:00</div>
+            <button class="sig-back" type="button" onclick="signalLogout()">↩ LOG OUT</button>
+          </div>
+          <div class="sig-title nx-fall-title" id="nxFallTitle" aria-label="NX SIGNAL" draggable="false"><span>N</span><span>X</span><span class="nx-space">&nbsp;</span><span>S</span><span>I</span><span>G</span><span>N</span><span>A</span><span>L</span></div>
+          <div class="sig-plane" aria-hidden="true">✈</div>
+          <div class="sig-orbit" aria-live="polite">
+            <div class="sig-ring"></div><div class="sig-ring r2"></div><div class="sig-ring r3"></div>
+            <div class="sig-value" id="transferredSignal">--.--<span>x</span></div>
+          </div>
+          <div class="sig-site-message" aria-live="polite">
+            <div class="sig-site-name" id="signalSiteName">FREE TRIAL</div>
+            <div class="sig-site-bengali">আপনি এই সাইডের  সিগন্যাল পাচ্ছেন</div>
+          </div>
+          <button class="sig-contact-toggle" id="sigContactToggle" type="button" aria-expanded="false" aria-controls="sigContactLinks" onclick="toggleSignalContacts()" title="Contact options">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2Zm-7.4 8.1c.3-3.5 3.4-5.8 7.4-5.8s7.1 2.3 7.4 5.8"/></svg>
+            <span>CONTACT</span>
+          </button>
+          <div class="sig-contacts" id="sigContactLinks" hidden>
+            <a class="sig-contact tg" href="https://t.me/Nx1xdetcrashhavk" target="_blank" rel="noopener">✈ TELEGRAM</a>
+            <a class="sig-contact wa" href="https://wa.me/8801342742911?text=NX%20Aviator%20Signal" target="_blank" rel="noopener">☏ WHATSAPP</a>
+          </div>
+        </section>
+
+        <div class="top-bar" id="loginTopBar">
+            <div class="lang-switch">
+                <button class="lang-btn active" onclick="setLanguage('en')" id="btn-en">EN</button>
+                <button class="lang-btn" onclick="setLanguage('bn')" id="btn-bn">বাং</button>
+            </div>
+            <div class="live-time" id="liveTime">00:00:00</div>
+        </div>
+
+        <div class="header-title" id="txt-title">
+            NX AVIATOR<br>SIGNAL
+        </div>
+
+        <div class="logo-container" id="loginLogoContainer">
+            <div class="radar-ring"></div>
+            <div class="radar-ring"></div>
+            <div class="orbit-dot"></div>
+            <div class="orbit-dot-2"></div>
+            <div class="center-logo" aria-label="NX"><span class="nx-circle-letter nx-circle-n">N</span><span class="nx-circle-letter nx-circle-x">X</span></div>
+        </div>
+
+        <div class="controls-group" id="loginControlsGroup">
+            <div class="floating-notice" id="floatingNotice">পাসওয়ার্ড লিখুন</div>
+
+            <input type="text" class="input-box" id="input-site-name" placeholder="সাইটের নাম লিখুন / SITE NAME" autocomplete="off" aria-label="Site name">
+            <div class="nx-password-wrap">
+              <input type="password" class="input-box" id="input-pwd" placeholder="ENTER PASSWORD" autocomplete="current-password" aria-label="Password">
+              <button type="button" class="nx-password-toggle" id="nxPasswordToggle" aria-label="পাসওয়ার্ড দেখুন" title="পাসওয়ার্ড দেখুন">
+                <svg class="nx-eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="nx-eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 0 4-.8"/></svg>
+              </button>
+            </div>
+            
+            <button class="btn btn-login" onclick="handleLogin()">
+                <span>➜]</span> <span id="txt-login">LOGIN</span>
+            </button>
+
+            <button class="btn btn-get" onclick="openSecondApp()">
+                <span>🛒</span> <span id="txt-get">GET PASSWORD</span>
+            </button>
+
+            <button class="btn btn-contact" onclick="openTelegramContact()">
+                <span>✈</span> <span id="txt-contact">CONTACT</span>
+            </button>
+        </div>
+
+        <div class="notice-box" id="loginNoticeBox" onclick="openVideoModal()">
+            <span class="play-icon">▶</span>
+            <span id="txt-notice">কিভাবে পাসওয়ার্ড কিনবেন ভিডিওটি দেখে নিন</span>
+        </div>
+
+        <!-- Fullscreen Support Video Popup Modal -->
+        <div class="video-modal" id="videoModal">
+            <div class="video-modal-header">
+                <span class="video-modal-title">কিভাবে পাসওয়ার্ড কিনবেন ভিডিও দেখুন</span>
+                <button class="close-cross-btn" onclick="closeVideoModal()">✕</button>
+            </div>
+            <video id="tutorialVideo" controls controlsList="nodownload" playsinline>
+                <source id="videoSource" src="https://github.com/md01609734222-hue/aviator-video/raw/refs/heads/main/InShot_20261006_163849661.mp4" type="video/mp4">
+                আপনার ব্রাউজার ভিডিও ট্যাগ সমর্থন করে না।
+            </video>
+        </div>
+
+        <!-- SECOND HTML APP CONTAINER -->
+        <div class="apm-wrap" id="secondAppContainer">
+          <div class="apm-topbar">
+            <button class="apm-langbtn" id="apmLangBtn" type="button">English</button>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="apm-clock"><i class="apm-dot"></i><span id="apmClock">--:--:--</span></div>
+              <div class="apm-action-group">
+                <button class="apm-backbtn" id="globalBackBtn" type="button" title="Back">
+                  <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="apm-offline" id="offlineBar">Live server reconnecting — fallback system ready.</div>
+
+          <section id="s-game" class="screen">
+            <div class="apm-card green">
+              <div class="apm-card green" style="margin-bottom:14px;padding:16px 12px">
+                <div class="apm-moon"></div>
+                <div class="apm-center" style="color:var(--green);font-weight:800;font-size:16px" data-t="">পাসওয়ার্ডে মেগা গ্যারান্টেড ডিসকাউন্ট!</div>
+              </div>
+              <div class="apm-note"><div class="i">i</div><div data-t="selgame">নিচে থেকে সিলেক্ট করুন কোন গেমের পাসওয়ার্ড কিনতে চান।</div></div>
+              <button class="apm-gamebtn g" type="button" data-game="CRASH">
+                <img src="https://i.postimg.cc/KYC2fBHn/images.jpg" alt="Crash" loading="lazy"/>
+                <span>CRASH</span>
+              </button>
+              <button class="apm-gamebtn r" type="button" data-game="AVIATOR">
+                <img src="https://i.postimg.cc/L4tpkqBQ/6cbb53f9-4316-4cce-a6eb-03d4c30b5c84.jpg" alt="Aviator" loading="lazy"/>
+                <span>AVIATOR</span>
+              </button>
+            </div>
+          </section>
+
+          <section id="s-site" class="screen hide">
+            <div class="apm-card green">
+              <div class="apm-title-g"><span data-t="buypass">পাসওয়ার্ড কিনুন</span> - <span id="siteGame"></span></div>
+              <div class="apm-note"><div class="i">i</div><div data-t="writesite">আপনি যে সাইটে খেলেন তার সঠিক নাম নিচের ঘরে লিখুন।</div></div>
+              <input class="apm-inp g" id="siteName" placeholder="সাইটের নাম লিখুন" autocomplete="off" />
+              <button class="apm-btn greenline" id="btnSiteNext" type="button">
+                <span data-t="next">পরবর্তী</span> 
+                <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          </section>
+
+          <section id="s-dur" class="screen hide">
+            <div class="apm-card green">
+              <div class="apm-title-g" data-t="seldur">সময়কাল নির্বাচন করুন</div>
+              <div class="apm-note"><div class="i">i</div><div data-t="seldurinfo">আপনার প্রয়োজন অনুযায়ী পাসওয়ার্ডের মেয়াদ বা প্যাকেজটি নির্বাচন করুন।</div></div>
+              <div id="pkgList"></div>
+              <button class="apm-btn greenline" id="btnBuyNow" type="button" style="margin-top:14px" data-t="buynow">এখনই কিনুন</button>
+              <div class="apm-rvhead"><b data-t="custrv">কাস্টমার রিভিউ</b><div class="apm-live"><i class="apm-dot"></i><span data-t="livet">লাইভ</span></div></div>
+              <div id="rvList"></div>
+            </div>
+          </section>
+
+          <section id="s-pm" class="screen hide">
+            <div class="apm-card green">
+              <div class="apm-title-g" data-t="selpm">পেমেন্ট মেথড নির্বাচন করুন</div>
+              <div class="apm-note"><div class="i">i</div><div data-t="selpminfo">পেমেন্ট সম্পন্ন করতে নিচে থেকে আপনার পছন্দের মাধ্যম নির্বাচন করুন।</div></div>
+              <div class="apm-pm" data-m="bkash">
+                <img src="https://i.postimg.cc/Qdp1hJpz/images-(1).jpg" alt="bKash" loading="lazy">
+                <div><b>bKash Payment</b><small data-t="instant">তাৎক্ষণিক প্রসেসিং</small></div>
+                <div class="arw"><svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></div>
+              </div>
+              <div class="apm-pm" data-m="nagad">
+                <img src="https://i.postimg.cc/4dFhBLgn/images.png" alt="Nagad" loading="lazy">
+                <div><b>Nagad Payment</b><small data-t="fast">দ্রুত ও নিরাপদ</small></div>
+                <div class="arw"><svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></div>
+              </div>
+              <div class="apm-pm" data-m="binance">
+                <img src="https://i.postimg.cc/xdfJYDf7/images-(1).png" alt="Binance" loading="lazy">
+                <div><b>Binance / USDT (TRC20)</b><small data-t="global">গ্লোবাল ক্রিপ্টো ট্রান্সফার</small></div>
+                <div class="arw"><svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="s-mfs" class="screen hide">
+            <div class="s888-box" id="mfsCardBox">
+              <div class="s888-topbar">
+                <span id="s888AmtTop">BDT 0</span>
+                <span class="pay-badge">PAY SERVICE</span>
+              </div>
+              <div class="s888-warn">আপনি যদি টাকার পরিমাণ পরিবর্তন করেন, আপনি ক্রেডিট পেতে সক্ষম হবেন না।</div>
+              
+              <div class="s888-header-btn" id="s888HeaderBtn">
+                <img id="s888Logo" src="" alt="Logo" />
+                <span id="s888Title">BKASH Send Money</span>
+              </div>
+
+              <div class="s888-label">Wallet No *</div>
+              <div class="s888-desc" id="s888Desc">এই নাম্বারে শুধুমাত্র সেন্ড মানি করা যাবে</div>
+              
+              <div class="s888-number-row">
+                <b id="mfsNum">Loading...</b>
+                <button class="s888-copy-btn" type="button" data-copy="#mfsNum">
+                  <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> <span data-t="copybtn">কপি</span>
+                </button>
+              </div>
+
+              <div class="s888-label" id="s888TrxLabel">সেন্ড মানির TrxID নাম্বারটি লিখুন(প্রয়োজনীয়)</div>
+              <input class="s888-input" id="mfsTrx" placeholder="TrxID অবশ্যই পূরণ করতে হবে!" autocomplete="off" />
+              <div class="apm-err" id="mfsErr"></div>
+              
+              <button class="s888-submit" id="mfsSubmit" type="button" data-t="submitbtn">নিশ্চিত</button>
+              
+              <div class="s888-footer-warn">সতর্কতা:<br>লেনদেন আইডি সঠিকভাবে পূরণ করতে হবে, অন্যথায় স্টোর ব্যর্থ হবে !!</div>
+              <div class="s888-footer-note" id="s888FooterNote">অনুগ্রহ করে নিশ্চিত হয়ে নিন যে আপনি সঠিক ওয়ালেট নাম্বারে সেন্ড মানি করছেন।</div>
+            </div>
+          </section>
+
+          <section id="s-usdt" class="screen hide">
+            <div class="apm-card green">
+              <div class="apm-title-g" data-t="secureusdt">সিকিউর USDT পেমেন্ট</div>
+              <img class="apm-qr" id="usdtQr" src="https://i.ibb.co.com/vxshdcr0/IMG-20261005-125109-2.jpg" alt="USDT QR" />
+              <div class="apm-kv">
+                <div class="k" data-t="tnet">ট্রান্সফার নেটওয়ার্ক</div>
+                <div class="v"><span>Tron (TRC20)</span></div>
+                <div class="k" data-t="dadr">ডিপোজিট এড্রেস</div>
+                <div class="v"><span id="usdtAdr">Loading...</span><button class="apm-btn red" type="button" data-copy="#usdtAdr" data-t="copyu" style="padding:4px 10px;width:auto;margin:0">কপি</button></div>
+                <div class="k" data-t="amt2send">যত পাঠাতে হবে</div>
+                <div class="v"><span id="usdtAmt" style="font-size:18px"></span><button class="apm-btn red" type="button" data-copy="#usdtAmt" data-t="copyu" style="padding:4px 10px;width:auto;margin:0">কপি</button></div>
+              </div>
+              <div class="apm-note"><div class="i">i</div><div data-t="exact">TRC20 নেটওয়ার্কে ঠিক এই পরিমাণ পাঠান। Don't send NFTs to this address.</div></div>
+              <input class="apm-inp" id="usdtTrx" placeholder="TrxID অবশ্যই পূরণ করতে হবে!" autocomplete="off" />
+              <div class="apm-err" id="usdtErr"></div>
+              <button class="apm-btn greenline" id="usdtSubmit" type="button" data-t="submitpay">পেমেন্ট সাবমিট করুন</button>
+            </div>
+          </section>
+
+          <section id="s-verify" class="screen hide">
+            <div class="apm-card green">
+              <div class="apm-timer" id="vTimer">01:00</div>
+              <div class="apm-spin"></div>
+              <div class="apm-center" style="color:var(--green);font-weight:800;font-size:18px" data-t="verifying">পেমেন্ট যাচাই করা হচ্ছে...</div>
+              <p class="apm-mut apm-center" style="margin-top:6px;font-size:13px" data-t="verifyinfo">অপেক্ষা করুন। আপনার পেমেন্ট সঠিক হলে ১ মিনিটের মধ্যে অটোমেটিক ভেরিফাই হবে।</p>
+              <div class="apm-dashh"></div>
+              <div class="apm-center" style="font-weight:700;margin-bottom:14px;font-size:14px" data-t="probadmin">কোনো সমস্যা হলে টেলিগ্রামে এডমিনের সাথে যোগাযোগ করুন।</div>
+              <button class="apm-btn ghost" id="btnTg" type="button">
+                <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 3L3 10.5l7 2.5 2.5 7L21 3z"/></svg> TELEGRAM
+              </button>
+            </div>
+          </section>
+
+          <section id="s-done" class="screen hide">
+            <div class="apm-card green">
+              <div class="apm-title-g">
+                <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg> 
+                <span data-t="approved">পেমেন্ট ভেরিফাই হয়েছে</span>
+              </div>
+              <div style="border:1.5px solid rgba(0,255,157,0.35);border-radius:14px;padding:12px;text-align:center;margin-bottom:14px;background:rgba(0,0,0,0.5)">
+                <div class="apm-mut" data-t="yourpass">আপনার পাসওয়ার্ড</div>
+                <div id="donePass" style="font-family:'Orbitron',sans-serif;font-size:19px;color:var(--gold);word-break:break-all;margin-top:4px;">-</div>
+              </div>
+              <button class="apm-btn gold" id="btnCopyPass" type="button" data-t="copypass">পাসওয়ার্ড কপি করুন</button>
+              <button class="apm-btn greenline" id="btnGoHome" type="button" data-t="gohome">শুরুতে ফিরে যান</button>
+            </div>
+          </section>
+
+          <section id="s-rej" class="screen hide">
+            <div class="apm-card green" style="border-color:rgba(255,59,95,0.6)">
+              <div class="apm-title-g" style="color:var(--red)">
+                <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9" stroke-width="2"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg> 
+                <span data-t="rejected">পেমেন্ট বাতিল হয়েছে</span>
+              </div>
+              <p class="apm-mut apm-center" id="rejNote" style="font-size:13.5px;margin-bottom:12px"></p>
+              <button class="apm-btn ghost" id="btnTg2" type="button">
+                <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 3L3 10.5l7 2.5 2.5 7L21 3z"/></svg> TELEGRAM
+              </button>
+              <button class="apm-btn greenline" id="btnRetry" type="button" data-t="retry">আবার চেষ্টা করুন</button>
+            </div>
+          </section>
+        </div>
+    </div>
+
+    <div class="apm-toast" id="toast"></div>
+
+    <script>
+        let currentLang = 'en';
+        let noticeTimer = null;
+        let tgLink = "https://t.me/kingcrashhack";
+
+        const bangladeshTimeFormatter = new Intl.DateTimeFormat([], { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        function updateBangladeshTime() {
+            const timeStr = bangladeshTimeFormatter.format(new Date());
+            const timeEl = document.getElementById('liveTime');
+            if (timeEl) timeEl.innerText = timeStr;
+            const apmClock = document.getElementById('apmClock');
+            if (apmClock) apmClock.innerText = timeStr;
+        }
+        setInterval(updateBangladeshTime, 1000);
+        updateBangladeshTime();
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const btnEn = document.getElementById('btn-en');
+            const btnBn = document.getElementById('btn-bn');
+            const inputPwd = document.getElementById('input-pwd');
+            const txtLogin = document.getElementById('txt-login');
+            const txtGet = document.getElementById('txt-get');
+            const txtContact = document.getElementById('txt-contact');
+            const txtNotice = document.getElementById('txt-notice');
+
+            if (lang === 'bn') {
+                if (btnBn) btnBn.classList.add('active');
+                if (btnEn) btnEn.classList.remove('active');
+                if (inputPwd) { inputPwd.placeholder = "পাসওয়ার্ড দিন"; inputPwd.style.fontFamily = "'Hind Siliguri', sans-serif"; }
+                if (txtLogin) txtLogin.innerText = "লগইন";
+                if (txtGet) txtGet.innerText = "পাসওয়ার্ড নিন";
+                if (txtContact) txtContact.innerText = "যোগাযোগ";
+                if (txtNotice) txtNotice.innerText = "কিভাবে পাসওয়ার্ড কিনবেন ভিডিওটি দেখে নিন";
+            } else {
+                if (btnEn) btnEn.classList.add('active');
+                if (btnBn) btnBn.classList.remove('active');
+                if (inputPwd) { inputPwd.placeholder = "ENTER PASSWORD"; inputPwd.style.fontFamily = "'Orbitron', sans-serif"; }
+                if (txtLogin) txtLogin.innerText = "LOGIN";
+                if (txtGet) txtGet.innerText = "GET PASSWORD";
+                if (txtContact) txtContact.innerText = "CONTACT";
+                if (txtNotice) txtNotice.innerText = "কিভাবে পাসওয়ার্ড কিনবেন ভিডিওটি দেখে নিন";
+            }
+        }
+
+        function showFloatingMessage(msg) {
+            const noticeEl = document.getElementById('floatingNotice');
+            if (!noticeEl) return;
+            noticeEl.innerText = msg;
+            noticeEl.classList.add('show');
+            if (noticeTimer) clearTimeout(noticeTimer);
+            noticeTimer = setTimeout(() => { noticeEl.classList.remove('show'); }, 2200);
+        }
+
+        // পার্মানেন্ট হার্ডওয়্যার ফিঙ্গারপ্রিন্ট জেনারেটর (Clear Data বা আনইন্সটল করলেও ডিভাইস বদলাবে না)
+        function getPersistentHardwareFingerprint() {
+            const key = 'nx_persistent_hw_fp';
+            try {
+                let existing = localStorage.getItem(key);
+                if (existing) return existing;
+            } catch (e) {}
+
+            try {
+                const screenStr = window.screen.width + 'x' + window.screen.height + 'x' + window.screen.colorDepth;
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+                const lang = navigator.language || '';
+                const platform = navigator.platform || '';
+                const concurrency = navigator.hardwareConcurrency || 4;
+                const memory = navigator.deviceMemory || 4;
+                
+                let rawId = platform + '_' + screenStr + '_' + tz + '_' + lang + '_' + concurrency + '_' + memory;
+                let hash = 0;
+                for (let i = 0; i < rawId.length; i++) {
+                    const char = rawId.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash |= 0;
+                }
+                const permanentId = 'nx_hw_' + Math.abs(hash).toString(36) + '_' + Math.abs(Math.sin(window.screen.width || 1) * 10000).toFixed(0);
+                
+                try { localStorage.setItem(key, permanentId); } catch(e){}
+                return permanentId;
+            } catch (err) {
+                return 'nx_device_' + Math.random().toString(36).substring(2, 15);
+            }
+        }
+
+        let nxTrialTimer = null;
+        function startNXTrial(expiresAt) {
+            if (nxTrialTimer) clearInterval(nxTrialTimer);
+            const trialTimerBadge = document.getElementById('sigTrialTimer');
+            if (trialTimerBadge) trialTimerBadge.style.display = 'inline-block';
+
+            const tick = () => {
+                const left = Math.max(0, expiresAt - Date.now());
+                const mins = Math.floor(left / 60000);
+                const secs = Math.floor((left % 60000) / 1000);
+                const formattedTime = String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+
+                if (trialTimerBadge) {
+                    trialTimerBadge.innerText = 'TRIAL: ' + formattedTime;
+                }
+
+                if (left <= 0) {
+                    clearInterval(nxTrialTimer); nxTrialTimer = null;
+                    if (trialTimerBadge) trialTimerBadge.style.display = 'none';
+                    signalLogout();
+                    showFloatingMessage(currentLang === 'bn' ? 'ফ্রি ১০ মিনিট শেষ। এখন পাসওয়ার্ড দিয়ে লগইন করুন।' : 'Free 10-minute trial ended. Please log in with a password.');
+                    return;
+                }
+            };
+            tick();
+            nxTrialTimer = setInterval(tick, 1000);
+        }
+
+        // পার্মানেন্ট ডিভাইস ট্র্যাকিং লজিক (ক্লিয়ার ডাটা বা রি-ইনস্টল করলেও ব্লক করবে)
+        async function autoCheckFirstTimeTrial() {
+            try {
+                if (!window.firebase || !firebase.apps || !firebase.apps.length) return;
+                const root = firebase.database().ref();
+                const deviceId = getPersistentHardwareFingerprint();
+                const trialRef = root.child('trialDevices/' + deviceId);
+                const existingSnap = await trialRef.once('value');
+                const existing = existingSnap.val();
+
+                if (existing && Number(existing.expiresAt || 0) > Date.now()) {
+                    // ট্রায়াল এখনো সময়সীমার মধ্যে চলছে
+                    openDashboardWithTrial(Number(existing.expiresAt));
+                } else if (!existing) {
+                    // একদম প্রথমবার এই ডিভাইসে অ্যাপ ইনস্টল বা ওপেন হয়েছে
+                    const now = Date.now();
+                    const expiresAt = now + 10 * 60 * 1000;
+                    await trialRef.set({
+                        startedAt: now,
+                        expiresAt: expiresAt,
+                        userAgent: (navigator.userAgent || '').slice(0, 120),
+                        trialMinutes: 10
+                    });
+                    openDashboardWithTrial(expiresAt);
+                } else {
+                    // ট্রায়াল ইতিপূর্বেই ব্যবহার করা শেষ হয়ে গেছে (রি-ইনস্টল বা ক্লিয়ার ডাটা করা হলেও এখানে এসে ব্লক করবে)
+                    showFloatingMessage(currentLang === 'bn' ? 'এই ডিভাইসে ফ্রি ট্রায়াল একবারই ব্যবহার করা হয়েছে। পাসওয়ার্ড দিন।' : 'Free trial already used on this device. Enter password.');
+                }
+            } catch (e) {
+                console.error('[autoTrialCheck]', e);
+            }
+        }
+
+        function openDashboardWithTrial(expiresAt) {
+            const siteTitle = document.getElementById('signalSiteName');
+            if (siteTitle) siteTitle.textContent = "FREE TRIAL";
+            const phoneFrame = document.querySelector('.phone-frame');
+            if (phoneFrame) phoneFrame.classList.add('signal-active');
+            document.body.classList.add('signal-fast-mode');
+            const particles = document.getElementById('signalParticles');
+            if (particles) particles.classList.add('signal-particles-active');
+            if (typeof startTransferredSignal === 'function') startTransferredSignal();
+            startNXTrial(expiresAt);
+        }
+
+        async function handleLogin() {
+            const siteNameEl = document.getElementById('input-site-name');
+            const siteName = siteNameEl ? siteNameEl.value.trim() : '';
+            if (!siteName) {
+                if (siteNameEl) {
+                    siteNameEl.focus();
+                    siteNameEl.style.borderColor = '#ff3b81';
+                    setTimeout(() => { if (siteNameEl) siteNameEl.style.borderColor = ''; }, 1800);
+                }
+                showFloatingMessage(currentLang === 'bn' ? 'লগইন করার আগে সাইটের নাম লিখুন' : 'Please enter the site name before logging in');
+                return;
+            }
+            const pwdEl = document.getElementById('input-pwd');
+            const pwdInput = pwdEl ? pwdEl.value.trim() : '';
+            if (!pwdInput) {
+                showFloatingMessage(currentLang === 'bn' ? 'দয়া করে পাসওয়ার্ড লিখুন' : 'Please enter a password');
+                return;
+            }
+
+            const loginBtn = document.querySelector('.login-btn, button[onclick="handleLogin()"]');
+            if (loginBtn && loginBtn.disabled) return;
+            if (loginBtn) loginBtn.disabled = true;
+
+            try {
+                if (!window.firebase || !firebase.apps || !firebase.apps.length) throw new Error('Firebase is not ready');
+                const root = firebase.database().ref();
+                const deviceId = getPersistentHardwareFingerprint();
+
+                const snapshot = await root.child('passwords/' + pwdInput).once('value');
+                if (!snapshot.exists()) {
+                    showFloatingMessage(currentLang === 'bn' ? 'ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড দিন।' : 'Incorrect password');
+                    return;
+                }
+                const data = snapshot.val() || {};
+                const expiry = Number(data.expiry || 0);
+                if (!expiry || expiry <= Date.now() || data.disabled === true) {
+                    showFloatingMessage(currentLang === 'bn' ? 'এই পাসওয়ার্ডটির মেয়াদ শেষ বা বন্ধ হয়ে গেছে!' : 'This password has expired or is disabled');
+                    return;
+                }
+                const maxDevices = Number(data.deviceLimit || 1);
+                const deviceRef = root.child('passwords/' + pwdInput + '/devices');
+                const claim = await deviceRef.transaction(function(devices) {
+                    devices = devices || {};
+                    if (devices[deviceId]) return devices;
+                    if (maxDevices !== -1 && Object.keys(devices).length >= maxDevices) return;
+                    devices[deviceId] = { firstSeen: Date.now(), userAgent: (navigator.userAgent || '').slice(0, 120) };
+                    return devices;
+                });
+                if (!claim.committed || !(claim.snapshot.val() || {})[deviceId]) {
+                    showFloatingMessage(currentLang === 'bn' ? 'ডিভাইস লিমিট পূর্ণ — এডমিনের সাথে যোগাযোগ করুন' : 'Device limit reached');
+                    return;
+                }
+
+                const siteTitle = document.getElementById('signalSiteName');
+                if (siteTitle) siteTitle.textContent = siteName.toUpperCase();
+                const phoneFrame = document.querySelector('.phone-frame');
+                if (phoneFrame) phoneFrame.classList.add('signal-active');
+                document.body.classList.add('signal-fast-mode');
+                const particles = document.getElementById('signalParticles');
+                if (particles) particles.classList.add('signal-particles-active');
+                if (typeof startTransferredSignal === 'function') startTransferredSignal();
+                if (nxTrialTimer) { clearInterval(nxTrialTimer); nxTrialTimer = null; }
+                const trialTimerBadge = document.getElementById('sigTrialTimer');
+                if (trialTimerBadge) trialTimerBadge.style.display = 'none';
+
+            } catch (err) {
+                console.error('[signal-login]', err);
+                showFloatingMessage(currentLang === 'bn' ? 'লগইন করতে সমস্যা হচ্ছে, ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন' : 'Login failed. Check your internet and try again.');
+            } finally {
+                if (loginBtn) loginBtn.disabled = false;
+            }
+        }
+
+        function signalLogout() {
+            if (nxTrialTimer) { clearInterval(nxTrialTimer); nxTrialTimer = null; }
+            const trialTimerBadge = document.getElementById('sigTrialTimer');
+            if (trialTimerBadge) trialTimerBadge.style.display = 'none';
+            const phoneFrame = document.querySelector('.phone-frame');
+            if (phoneFrame) phoneFrame.classList.remove('signal-active');
+            document.body.classList.remove('signal-fast-mode');
+            const particles = document.getElementById('signalParticles');
+            if (particles) particles.classList.remove('signal-particles-active');
+            if (typeof stopTransferredSignal === 'function') stopTransferredSignal();
+            const input = document.getElementById('input-pwd');
+            if (input) input.value = '';
+        }
+
+        function openVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const video = document.getElementById('tutorialVideo');
+            if (modal) modal.classList.add('show');
+            if (video) {
+                video.play();
+                if (video.requestFullscreen) video.requestFullscreen();
+                else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+                else if (video.msRequestFullscreen) video.msRequestFullscreen();
+            }
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const video = document.getElementById('tutorialVideo');
+            if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+            if (video) { video.pause(); video.currentTime = 0; }
+            if (modal) modal.classList.remove('show');
+        }
+
+        function openTelegramContact() { window.open(tgLink, "_blank"); }
+        function openSecondApp() {
+            const secondApp = document.getElementById('secondAppContainer');
+            if (secondApp) secondApp.classList.add('show');
+        }
+    </script>
+
+    <script>
+    (function(){
+    "use strict";
+
+    var $ = function(s){ return document.querySelector(s); };
+    var el = function(id){ return document.getElementById(id); };
+    function safe(fn){ try{ return fn(); }catch(e){ console.warn("[apm]", e); return null; } }
+    function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+    function txt(id,v){ var n=el(id); if(n) n.textContent=v; }
+
+    var DEFAULTS = {
+      brand: "AVIATOR PREMIUM MODZ",
+      logo: "https://i.postimg.cc/LXsHQm9s/IMG-20260831-153029-021.jpg",
+      bkashNumber: "",
+      nagadNumber: "",
+      binanceAddress: "TNTNGEp8t4eGd53GFtJxTB3fcBYW4zwAGb",
+      binanceQr: "https://i.ibb.co.com/vxshdcr0/IMG-20261005-125109-2.jpg",
+      usdRate: 128,
+      telegram: "https://t.me/OFFICIAL_SUPPORT_100",
+      videoUrl: "https://github.com/md01609734222-hue/aviator-video/raw/refs/heads/main/InShot_20261006_163849661.mp4",
+      verifyMinutes: 1,
+      maintenance: false,
+      maintenanceText: "দুঃখিত, বর্তমানে সার্ভার ও অ্যাপের আপডেট বা মেইনটেন্যান্সের কাজ চলছে। দয়া করে কিছুক্ষণ পরে আবার চেষ্টা করুন।"
+    };
+
+    var DEFAULT_PKGS = {
+      CRASH:{
+        p1:{name_en:"1 Day Password",name_bn:"১ দিনের পাসওয়ার্ড",price:1350,oldPrice:1688,discount:20,order:1},
+        p2:{name_en:"3 Days Password",name_bn:"৩ দিনের পাসওয়ার্ড",price:1450,oldPrice:1813,discount:20,order:2},
+        p3:{name_en:"6 Days Password",name_bn:"৬ দিনের পাসওয়ার্ড",price:1750,oldPrice:2188,discount:20,order:3}
+      },
+      AVIATOR:{
+        p1:{name_en:"1 Day Password",name_bn:"১ দিনের পাসওয়ার্ড",price:1350,oldPrice:1688,discount:20,order:1},
+        p2:{name_en:"3 Days Password",name_bn:"৩ দিনের পাসওয়ার্ড",price:1450,oldPrice:1813,discount:20,order:2},
+        p3:{name_en:"6 Days Password",name_bn:"৬ দিনের পাসওয়ার্ড",price:1750,oldPrice:2188,discount:20,order:3}
+      }
+    };
+
+    var DEFAULT_REVIEWS = {
+      r1:{city_bn:"চট্টগ্রাম",city_en:"Chattogram",name_bn:"আরাফাত রহমান",name_en:"Arafat Rahman",text_bn:"প্যাকেজ নিয়ে ভালো লাভ করেছি, সবাই নিশ্চিন্তে নিতে পারেন।",text_en:"Made good profit with the package, everyone can take it safely.",rating:5},
+      r2:{city_bn:"ঢাকা",city_en:"Dhaka",name_bn:"রাফিন উদ্দিন",name_en:"Rafin Uddin",text_bn:"পাসওয়ার্ড একদম কাজ করেছে, ধন্যবাদ এডমিন।",text_en:"Password worked perfectly, thanks admin.",rating:5},
+      r3:{city_bn:"সিলেট",city_en:"Sylhet",name_bn:"তানভীর হাসান",name_en:"Tanvir Hasan",text_bn:"দ্রুত ডেলিভারি পেয়েছি, সার্ভিস দারুণ।",text_en:"Got fast delivery, great service.",rating:5}
+    };
+
+    var T = {
+      bn:{
+        mega:"পাসওয়ার্ডে মেগা গ্যারান্টেড ডিসকাউন্ট!",
+        selgame:"নিচে থেকে সিলেক্ট করুন কোন গেমের পাসওয়ার্ড কিনতে চান।",
+        buypass:"পাসওয়ার্ড কিনুন",writesite:"আপনি যে সাইটে খেলেন তার সঠিক নাম নিচের ঘরে লিখুন।",
+        next:"পরবর্তী",seldur:"সময়কাল নির্বাচন করুন",
+        seldurinfo:"আপনার প্রয়োজন অনুযায়ী পাসওয়ার্ডের মেয়াদ বা প্যাকেজটি নির্বাচন করুন।",
+        buynow:"এখনই কিনুন",custrv:"কাস্টমার রিভিউ",livet:"লাইভ",
+        selpm:"পেমেন্ট মেথড নির্বাচন করুন",selpminfo:"পেমেন্ট সম্পন্ন করতে নিচে থেকে আপনার পছন্দের মাধ্যম নির্বাচন করুন।",
+        instant:"তাৎক্ষণিক প্রসেসিং",fast:"দ্রুত ও নিরাপদ",global:"গ্লোবাল ক্রিপ্টো ট্রান্সফার",
+        secureusdt:"সিকিউর USDT পেমেন্ট",tnet:"ট্রান্সফার নেটওয়ার্ক",dadr:"ডিপোজিট এড্রেস",
+        amt2send:"যত পাঠাতে হবে",exact:"TRC20 নেটওয়ার্কে ঠিক এই পরিমাণ পাঠান। Don't send NFTs to this address.",
+        verifying:"পেমেন্ট যাচাই করা হচ্ছে...",
+        verifyinfo:"অপেক্ষা করুন। আপনার পেমেন্ট সঠিক হলে ১ মিনিটের মধ্যে অটোমেটিক ভেরিফাই হবে।",
+        probadmin:"কোনো সমস্যা হলে টেলিগ্রামে এডমিনের সাথে যোগাযোগ করুন।",
+        approved:"পেমেন্ট ভেরিফাই হয়েছে",yourpass:"আপনার পাসওয়ার্ড",copypass:"পাসওয়ার্ড কপি করুন",
+        gohome:"শুরুতে ফিরে যান",rejected:"পেমেন্ট বাতিল হয়েছে",retry:"আবার চেষ্টা করুন",
+        ph_site:"সাইটের নাম লিখুন",ph_trx:"TrxID অবশ্যই পূরণ করতে হবে!",
+        e_fill:"সব ঘর পূরণ করুন",e_trx:"TrxID দিন",e_pkg:"একটি প্যাকেজ নির্বাচন করুন",
+        e_net:"সার্ভারে সংযোগ করা যাচ্ছে না, আবার চেষ্টা করুন",
+        copied:"কপি হয়েছে",sent:"রিকোয়েস্ট পাঠানো হয়েছে",
+        off:"ছাড়",hot:"HOT OFFER",
+        verified:"যাচাইকৃত ক্রেতা",ago:function(m){ return m+" মিনিট আগে"; }
+      },
+      en:{
+        mega:"Mega guaranteed discount on passwords!",
+        selgame:"Select below which game password you want to buy.",
+        buypass:"BUY PASSWORD",writesite:"Write the exact name of the site you play on in the box below.",
+        next:"NEXT",seldur:"SELECT DURATION",
+        seldurinfo:"Select the password duration or package that suits your need.",
+        buynow:"BUY NOW",custrv:"CUSTOMER REVIEWS",livet:"LIVE",
+        selpm:"SELECT PAYMENT METHOD",selpminfo:"Choose your preferred method below to complete the payment.",
+        instant:"Instant processing",fast:"Fast & secure",global:"Global crypto transfer",
+        secureusdt:"SECURE USDT PAYMENT",tnet:"TRANSFER NETWORK",dadr:"DEPOSIT ADDRESS",
+        amt2send:"AMOUNT TO SEND",exact:"Send the exact amount on the TRC20 network. Don't send NFTs to this address.",
+        verifying:"Verifying payment...",
+        verifyinfo:"Please wait. If your payment is correct it will be verified automatically within 1 minute.",
+        probadmin:"If you have any problem, contact the admin on Telegram.",
+        approved:"Payment verified",yourpass:"Your password",copypass:"COPY PASSWORD",
+        gohome:"GO TO HOME",rejected:"Payment rejected",retry:"TRY AGAIN",
+        ph_site:"Enter site name",
+        ph_trx:"Enter TrxID!",
+        e_fill:"Please fill all fields",e_trx:"Enter TrxID",e_pkg:"Select a package",
+        e_net:"Cannot reach the server, please try again",
+        copied:"Copied",sent:"Request sent",
+        off:"OFF",hot:"HOT OFFER",
+        verified:"Verified buyer",ago:function(m){ return m+" minutes ago"; }
+      }
+    };
+
+    var lang = safe(function(){ return localStorage.getItem("apm_lang"); }) || "bn";
+    if(!T[lang]) lang = "bn";
+    function t(k){ var v = T[lang][k]; return v==null ? (T.en[k]==null?"":T.en[k]) : v; }
+    function bn(n){ return lang === "bn" ? String(n).replace(/[0-9]/g, function(d){ return "০১২৩৪৫৬৭৮৯"[d]; }) : String(n); }
+    function money(n){ return "BDT " + bn(n); }
+
+    var state = { game:null, site:"", pkg:null, method:null, orderId:null, busy:false };
+    window.settings = Object.assign({}, DEFAULTS);
+    var pkgsByGame = DEFAULT_PKGS;
+    var reviews = Object.keys(DEFAULT_REVIEWS).map(function(k){ return DEFAULT_REVIEWS[k]; });
+
+    var SCREENS = ["s-game","s-site","s-dur","s-pm","s-mfs","s-usdt","s-verify","s-done","s-rej"];
+    function show(id){
+      SCREENS.forEach(function(s){ var n = el(s); if(n) n.classList.toggle("hide", s !== id); });
+      safe(function(){ var wrap = el("secondAppContainer"); if(wrap) wrap.scrollTo({ top:0, behavior:"instant" }); });
+    }
+
+    var screenHistory = ["s-game"];
+    function navigateTo(id) {
+      if (screenHistory[screenHistory.length - 1] !== id) {
+        screenHistory.push(id);
+      }
+      show(id);
+    }
+
+    var apmBackBtn = el("globalBackBtn");
+    if(apmBackBtn) {
+      apmBackBtn.onclick = function(){
+        if (screenHistory.length > 1) {
+          screenHistory.pop();
+          var prevScreen = screenHistory[screenHistory.length - 1];
+          show(prevScreen);
+        } else {
+          var wrap = el("secondAppContainer");
+          if(wrap) wrap.classList.remove("show");
+        }
+      };
+    }
+
+    var toastTimer = null;
+    function toast(m){
+      var n = el("toast"); if(!n) return;
+      n.textContent = m; n.classList.add("on");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function(){ n.classList.remove("on"); }, 1500);
+    }
+
+    function copyText(str){
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(str).then(function(){ toast(t("copied")); }, fallback);
+      } else fallback();
+      function fallback(){
+        safe(function(){
+          var ta = document.createElement("textarea");
+          ta.value = str; ta.style.position="fixed"; ta.style.opacity="0";
+          document.body.appendChild(ta); ta.select(); document.execCommand("copy");
+          document.body.removeChild(ta); toast(t("copied"));
+        });
+      }
+    }
+
+    document.addEventListener("click", function(e){
+      var b = e.target.closest ? e.target.closest("[data-copy]") : null;
+      if(!b) return;
+      var src = $(b.getAttribute("data-copy"));
+      if(src) copyText((src.textContent || "").trim());
+    });
+
+    function getGamePackages(gameKey) {
+      if (!gameKey) return {};
+      var target = String(gameKey).trim().toUpperCase();
+      if (pkgsByGame && typeof pkgsByGame === 'object') {
+        if (pkgsByGame[target]) return pkgsByGame[target];
+        if (pkgsByGame[target.toLowerCase()]) return pkgsByGame[target.toLowerCase()];
+        for (var k in pkgsByGame) {
+          if (String(k).trim().toUpperCase() === target) {
+            return pkgsByGame[k];
+          }
+        }
+      }
+      if (DEFAULT_PKGS[target]) return DEFAULT_PKGS[target];
+      if (DEFAULT_PKGS[target.toLowerCase()]) return DEFAULT_PKGS[target.toLowerCase()];
+      return {};
+    }
+
+    function pkgArray(){
+      var g = getGamePackages(state.game);
+      return Object.keys(g).map(function(id){
+        var p = g[id] || {};
+        return { 
+          id: id, 
+          name_en: p.name_en || p.name || "", 
+          name_bn: p.name_bn || p.name || "", 
+          price: Number(p.price) || 0,
+          oldPrice: Number(p.oldPrice) || 0, 
+          discount: Number(p.discount) || 0, 
+          order: Number(p.order) || 0 
+        };
+      }).sort(function(a,b){ return a.order - b.order; });
+    }
+
+    function renderPkgs(){
+      var list = el("pkgList"); if(!list) return;
+      var arr = pkgArray();
+      if(!arr.length){ list.innerHTML = '<div style="text-align:center;padding:10px;">—</div>'; return; }
+      if(state.pkg){
+        var still = arr.filter(function(x){ return x.id === state.pkg.id; })[0];
+        state.pkg = still || null;
+      }
+      list.innerHTML = arr.map(function(p){
+        var hot = p.discount > 0;
+        var nm = (lang === "bn") ? (p.name_bn || p.name_en) : (p.name_en || p.name_bn);
+        return '<div class="apm-pkg '+(hot?'hot ':'')+(state.pkg && state.pkg.id === p.id ? 'sel' : '')+'" data-pkg="'+esc(p.id)+'">'
+          + (hot ? '<div class="hotbadge"><span>🔥</span><b>'+bn(p.discount)+'% '+esc(t("off"))+'</b>'
+                 + (p.oldPrice ? '<s>'+bn(p.oldPrice)+'</s>' : '')
+                 + '<b>BDT</b></div>' : '')
+          + '<div class="pkgrow"><div class="nm">'+esc(nm||"")+'</div><div class="pr">'+money(p.price)+'</div></div>'
+          + '</div>';
+      }).join("");
+
+      list.querySelectorAll(".apm-pkg").forEach(function(n){
+        n.onclick = function(){
+          var id = n.getAttribute("data-pkg");
+          state.pkg = pkgArray().filter(function(x){ return x.id === id; })[0] || null;
+          renderPkgs();
+        };
+      });
+    }
+
+    var STAR = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+    var rvIndex = 0;
+    function reviewCard(r){
+      r = r || {};
+      var nm = (lang === "bn") ? (r.name_bn || r.name_en) : (r.name_en || r.name_bn);
+      var city = (lang === "bn") ? (r.city_bn || r.city_en) : (r.city_en || r.city_bn);
+      var tx = (lang === "bn") ? (r.text_bn || r.text_en) : (r.text_en || r.text_bn);
+      var rating = Math.max(1, Math.min(5, Number(r.rating) || 5));
+      var m = 2 + Math.floor(Math.random() * 55);
+      return '<div class="apm-rv"><div class="city">'+esc(city||"")+'</div>'
+        + '<div class="row"><div class="apm-av">'+esc((nm||"A").trim().charAt(0))+'</div>'
+        + '<div><div class="nm">'+esc(nm||"")+'</div></div>'
+        + '<div class="stars">'+STAR.repeat(rating)+'</div></div>'
+        + '<p>'+esc(tx||"")+'</p><small>'+esc(t("verified"))+' · '+esc(t("ago")(m))+'</small></div>';
+    }
+
+    function renderReviews(){
+      var box = el("rvList"); if(!box || !reviews.length) return;
+      box.innerHTML = reviews.slice(0, 4).map(reviewCard).join("");
+      rvIndex = 4;
+    }
+
+    function fillMfs(){
+      if(state.method !== "bkash" && state.method !== "nagad") return;
+      var isB = state.method === "bkash";
+      var amt = state.pkg ? state.pkg.price : 0;
+      txt("s888AmtTop", "BDT " + bn(amt));
+      var headerBtn = el("s888HeaderBtn");
+      var logo = el("s888Logo");
+      var activeNum = isB ? (window.settings.bkashNumber || DEFAULTS.bkashNumber) : (window.settings.nagadNumber || DEFAULTS.nagadNumber);
+
+      if(isB){
+        headerBtn.className = "s888-header-btn bkash";
+        logo.src = "https://i.postimg.cc/Qdp1hJpz/images-(1).jpg";
+        txt("s888Title", lang === "bn" ? "বিকাশ সেন্ড মানি" : "BKASH Send Money");
+        txt("s888Desc", lang === "bn" ? "এই বিকাশ নাম্বারে শুধুমাত্র সেন্ড মানি করা যাবে" : "Send Money only to this bKash number");
+        txt("s888TrxLabel", lang === "bn" ? "সেন্ড মানির TrxID নাম্বারটি লিখুন (প্রয়োজনীয়)" : "Enter Send Money TrxID (Required)");
+        txt("mfsNum", activeNum);
+        txt("s888FooterNote", lang === "bn" ? "অনুগ্রহ করে নিশ্চিত হয়ে নিন যে আপনি সঠিক বিকাশ নাম্বারে সেন্ড মানি করছেন।" : "Please make sure you send money to the correct bKash number.");
+      } else {
+        headerBtn.className = "s888-header-btn nagad";
+        logo.src = "https://i.postimg.cc/4dFhBLgn/images.png";
+        txt("s888Title", lang === "bn" ? "নগদ সেন্ড মানি" : "NAGAD Send Money");
+        txt("s888Desc", lang === "bn" ? "এই নগদ নাম্বারে শুধুমাত্র সেন্ড মানি করা যাবে" : "Send Money only to this Nagad number");
+        txt("s888TrxLabel", lang === "bn" ? "সেন্ড মানির TrxID নাম্বারটি লিখুন (প্রয়োজনীয়)" : "Enter Send Money TrxID (Required)");
+        txt("mfsNum", activeNum);
+        txt("s888FooterNote", lang === "bn" ? "অনুগ্রহ করে নিশ্চিত হয়ে নিন যে আপনি সঠিক নগদ নাম্বারে সেন্ড মানি করছেন।" : "Please make sure you send money to the correct Nagad number.");
+      }
+    }
+
+    function fillUsdt(){
+      var rate = Number(window.settings.usdRate || DEFAULTS.usdRate) || DEFAULTS.usdRate;
+      var usd = ((state.pkg ? state.pkg.price : 0) / rate).toFixed(2);
+      var adr = window.settings.binanceAddress || DEFAULTS.binanceAddress;
+      txt("usdtAdr", adr);
+      var amt = el("usdtAmt");
+      if(amt) amt.innerHTML = "$" + usd + ' <small style="font-size:12px;color:#9fb0bd">USDT</small>';
+      var qr = el("usdtQr");
+      if(qr) qr.src = window.settings.binanceQr || DEFAULTS.binanceQr;
+    }
+
+    var db = null;
+    const firebaseConfig = {
+      apiKey: "AIzaSyCugZlnwTq0-vJGLvN3TiCMbPrtgkJUVhA",
+      authDomain: "nozrulexpresstopup.firebaseapp.com",
+      databaseURL: "https://nozrulexpresstopup-default-rtdb.firebaseio.com",
+      projectId: "nozrulexpresstopup",
+      storageBucket: "nozrulexpresstopup.firebasestorage.app",
+      messagingSenderId: "947108346760",
+      appId: "1:947108346760:web:411ab418b320deeea0183d"
+    };
+
+    function offline(on){ var b = el("offlineBar"); if(b) b.classList.toggle("on", !!on); }
+
+    function initFirebase(){
+      if(db) return db;
+      try{
+        if(!firebase.apps.length){
+          firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.database();
+        bindLive();
+        offline(false);
+        // ফায়ারবেস রেডি হওয়ার সাথে সাথে ফ্রি ট্রায়াল চেক
+        autoCheckFirstTimeTrial();
+      }catch(e){
+        console.warn("[apm] Firebase Error:", e);
+        offline(true);
+      }
+      return db;
+    }
+
+    function bindLive(){
+      if(!db) return;
+      safe(function(){
+        db.ref("settings").on("value", function(snap){
+          var v = snap.val() || {};
+          window.settings = Object.assign({}, DEFAULTS, v);
+          
+          if(window.settings.telegram) { window.tgLink = window.settings.telegram; try { tgLink = window.settings.telegram; } catch (_) {} var tgButtons = document.querySelectorAll(".sig-contact.tg"); tgButtons.forEach(function(a){ a.href = window.settings.telegram; }); }
+          if(window.settings.videoUrl) {
+            var vSrc = el("videoSource");
+            var vVid = el("tutorialVideo");
+            if(vSrc && vVid && vSrc.src !== window.settings.videoUrl) {
+              vSrc.src = window.settings.videoUrl;
+              vVid.load();
+            }
+          }
+
+          var maintModal = el("maintOverlay");
+          if(window.settings.maintenance === true || window.settings.maintenance === "true"){
+            if(maintModal) maintModal.classList.add("show");
+            txt("maintText", window.settings.maintenanceText || DEFAULTS.maintenanceText);
+          } else {
+            if(maintModal) maintModal.classList.remove("show");
+          }
+          if(state.method === "binance") fillUsdt(); else if(state.method) fillMfs();
+        }, function(err){ console.warn(err); offline(true); });
+
+        db.ref("packages").on("value", function(snap){
+          var v = snap.val();
+          pkgsByGame = (v && Object.keys(v).length) ? v : DEFAULT_PKGS;
+          renderPkgs();
+        });
+      });
+    }
+
+    function bind(id, fn){ var n = el(id); if(n) n.onclick = fn; }
+
+    document.querySelectorAll(".apm-gamebtn").forEach(function(b){
+      b.onclick = function(){
+        state.game = b.getAttribute("data-game");
+        state.pkg = null;
+        txt("siteGame", state.game);
+        el("siteName").value = "";
+        navigateTo("s-site");
+      };
+    });
+
+    bind("btnSiteNext", function(){
+      var v = (el("siteName").value || "").trim();
+      if(!v){ toast(t("e_fill")); return; }
+      state.site = v;
+      renderPkgs(); renderReviews();
+      navigateTo("s-dur");
+    });
+
+    bind("btnBuyNow", function(){
+      if(!state.pkg){ toast(t("e_pkg")); return; }
+      navigateTo("s-pm");
+    });
+
+    document.querySelectorAll(".apm-pm").forEach(function(n){
+      n.onclick = function(){
+        if(!state.pkg){ toast(t("e_pkg")); navigateTo("s-dur"); return; }
+        state.method = n.getAttribute("data-m");
+        var x = el("mfsTrx"); if(x) x.value = "";
+        var ux = el("usdtTrx"); if(ux) ux.value = "";
+        if(state.method === "binance"){ fillUsdt(); navigateTo("s-usdt"); }
+        else { fillMfs(); navigateTo("s-mfs"); }
+      };
+    });
+
+    async function submitOrder(trxId, errId, btnId){
+      var trx = (el(trxId).value || "").trim();
+      var errN = el(errId); errN.textContent = "";
+      if(!trx){ errN.textContent = t("e_trx"); return; }
+      if(!state.pkg){ errN.textContent = t("e_pkg"); return; }
+      if(state.busy) return;
+      state.busy = true;
+      var btn = el(btnId); if(btn) btn.setAttribute("disabled","");
+      try{
+        initFirebase();
+        if(!db){ errN.textContent = t("e_net"); return; }
+        var rate = Number(window.settings.usdRate || DEFAULTS.usdRate) || DEFAULTS.usdRate;
+        var order = {
+          site: state.site, 
+          game: state.game,
+          packageId: state.pkg.id,
+          packageName: state.pkg.name_en || state.pkg.name_bn || "",
+          amount: state.pkg.price,
+          amountUsd: state.method === "binance" ? Number((state.pkg.price / rate).toFixed(2)) : null,
+          method: state.method, 
+          trxId: trx, 
+          status: "pending", 
+          password: "",
+          createdAt: Date.now()
+        };
+        var r = db.ref("orders").push();
+        await r.set(order);
+        state.orderId = r.key;
+        toast(t("sent"));
+        startVerify();
+      }catch(e){
+        console.warn(e); errN.textContent = t("e_net");
+      }finally{
+        state.busy = false; if(btn) btn.removeAttribute("disabled");
+      }
+    }
+
+    bind("mfsSubmit", function(){ submitOrder("mfsTrx","mfsErr","mfsSubmit"); });
+    bind("usdtSubmit", function(){ submitOrder("usdtTrx","usdtErr","usdtSubmit"); });
+
+    var timerInt = null, orderRef = null;
+    function stopWatch(){
+      clearInterval(timerInt); timerInt = null;
+      if(orderRef){ orderRef.off(); orderRef = null; }
+    }
+
+    function startVerify(){
+      navigateTo("s-verify");
+      stopWatch();
+      var secs = (Number(window.settings.verifyMinutes || 1) || 1) * 60;
+      var paint = function(){
+        txt("vTimer", String(Math.floor(secs/60)).padStart(2,"0") + ":" + String(secs%60).padStart(2,"0"));
+      };
+      paint();
+      
+      timerInt = setInterval(function(){ 
+        secs = Math.max(0, secs-1); 
+        paint(); 
+        if(secs <= 0) {
+          clearInterval(timerInt);
+          stopWatch();
+          txt("rejNote", "আপনার পেমেন্ট সম্পন্ন হয় নাই আপনি ট্রানজেকশন আইডি ভুল দিয়েছেন");
+          navigateTo("s-rej");
+        }
+      }, 1000);
+
+      if(!db || !state.orderId) return;
+      safe(function(){
+        orderRef = db.ref("orders/" + state.orderId);
+        orderRef.on("value", function(snap){
+          var o = snap.val(); if(!o) return;
+          if(o.status === "approved"){
+            stopWatch();
+            txt("donePass", o.password || "-");
+            navigateTo("s-done");
+          } else if(o.status === "rejected"){
+            stopWatch();
+            txt("rejNote", o.note || "আপনার পেমেন্ট সম্পন্ন হয় নাই আপনি ট্রানজেকশন আইডি ভুল দিয়েছেন");
+            navigateTo("s-rej");
+          }
+        });
+      });
+    }
+
+    bind("btnTg", function(){ window.open(window.settings.telegram || DEFAULTS.telegram, "_blank"); });
+    bind("btnTg2", function(){ window.open(window.settings.telegram || DEFAULTS.telegram, "_blank"); });
+    bind("btnCopyPass", function(){ copyText((el("donePass").textContent || "").trim()); });
+    bind("btnGoHome", function(){ screenHistory = ["s-game"]; show("s-game"); });
+    bind("btnRetry", function(){ stopWatch(); navigateTo("s-pm"); });
+
+    function applyLang(){
+      document.body.classList.toggle("bn", lang === "bn");
+      var lb = el("apmLangBtn"); if(lb) lb.textContent = (lang === "bn" ? "English" : "বাংলা");
+      document.querySelectorAll("[data-t]").forEach(function(n){
+        var v = T[lang][n.dataset.t];
+        if(typeof v === "string") n.textContent = v;
+      });
+      renderPkgs(); renderReviews();
+      if(state.method === "binance") fillUsdt(); else if(state.method) fillMfs();
+    }
+
+    safe(function(){
+      var lb = el("apmLangBtn");
+      if(lb) lb.onclick = function(){
+        lang = (lang === "bn") ? "en" : "bn";
+        safe(function(){ localStorage.setItem("apm_lang", lang); });
+        applyLang();
+      };
+    });
+
+    initFirebase();
+    applyLang();
+    screenHistory = ["s-game"];
+    show("s-game");
+
+    })();
+    </script>
+<script id="transferred-signal-logic">
+const CRASH_SEQUENCE = [1.25,1.60,2.40,1.07,1.38,9.10,1.08,1.45,3.05,1.12,19.80,1.04,6.60,1.23,2.70,1.11,3.90,1.14,1.85,1.06,102.50,1.58,4.25,1.03,1.40,8.75,1.15,1.55,2.15,1.07,13.40,1.24,1.90,1.02,1.47,6.25,1.08,1.35,3.55,1.10,1.19,1.52,2.60,1.05,1.31,35.20,1.06,1.68,5.45,1.01,1.12,1.45,8.10,1.04,1.16,4.50,1.07,1.30,2.25,1.08,1.21,1.55,3.90,1.06,1.36,16.50,1.09,1.62,1.98,1.03,9.20,1.18,2.85,1.02,1.43,5.80,1.11,1.20,3.25,1.05,1.14,1.49,6.90,1.08,1.32,22.80,1.02,1.10,2.35,1.42,1.17,1.54,4.25,1.04,1.25,7.30,1.09,1.33,2.80,1.07,1.52,10.15,1.05,1.15,2.12,1.24,12.40,1.07,4.50,1.36,1.13,1.59,3.15,1.01,1.42,5.25,1.04,1.17,2.45,1.10,1.23,1.55,2.20,1.08,1.35,8.80,1.06,1.40,3.10,1.14,17.15,1.02,6.45,1.21,2.65,1.09,3.75,1.12,1.90,1.05,550.20,1.54,4.10,1.04,1.39,9.40,1.16,1.58,2.30,1.08,11.25,1.22,1.85,1.03,1.44,6.15,1.07,1.31,3.40,1.11,1.18,1.49,2.55,1.06,1.33,28.10,1.05,1.65,5.60,1.01,1.13,1.42,7.25,1.08,1.15,4.30,1.09,1.28,2.15,1.04,1.20,1.52,3.85,1.07,1.34,14.80,1.10,1.60,1.95,1.02,8.50,1.19,2.70,1.03,1.45,5.90,1.12,1.21,3.35,1.06,1.15,1.47,6.80,1.09,1.30,19.30,1.04,1.11,2.20,1.40,1.18,1.55,4.40,1.05,1.24,7.10,1.07,1.32,2.65,1.08,1.46,12.90,1.03,1.14,2.05,1.22,312.40,1.09,4.25,1.35,1.12,1.58,3.05,1.02,1.41,5.15,1.04,1.17,2.45,1.10,25.50,1.38,6.30,1.05,1.21,15.20,1.01,1.62,4.90,1.08,1.16,1.50,3.75,1.04,1.34,8.40,1.06,1.25,2.90,1.13,4.60,1.09,1.48,11.80,1.02,1.14,2.15,1.07,42.10,1.30,1.11,1.55,2.40,1.03,1.19,5.75,1.08,1.42,3.10,1.05,7.15,1.01,1.28,9.30,1.12,1.40,2.85,1.04,18.40,1.22,1.09,3.45,1.70,1.02,6.20,1.15,4.10,1.06,2.52,1.18,1.11,1.59,2.10,1.07,1.40,10.15,1.28,1.63,5.05,1.09,1.17,3.45,1.85,1.04,7.60,1.49,14.70,1.15,2.30,1.08,1.23,1.55,4.15,1.02,1.34,8.35,1.16,1.58,2.65,1.10,11.20,1.27,2.90,1.03,1.45,5.40,1.08,1.19,3.50,1.12,205.40,1.60,2.25,1.05,1.38,9.80,1.21,1.52,4.75,1.06,1.14,3.10,1.95,1.01,6.20,1.42,25.10,1.13,2.40,1.07,1.18,1.50,3.65,1.04,1.29,7.45,1.15,1.65,2.80,1.09,1.12,4.30,1.48,1.08,5.10,1.35,18.20,1.10,2.15,1.03,1.22,1.54,2.45,1.06,1.32,8.90,1.07,1.46,3.05,1.14,120.50,1.01,6.40,1.19,2.60,1.08,4.25,1.12,1.82,1.05,1.58,14.10,1.04,1.15,2.35,1.21,55.40,1.09,3.90,1.40,1.18,1.47,7.20,1.03,1.30,5.80,1.06,1.44,2.50,1.11,1.52,11.30,1.02,1.16,2.10,1.25,35.20,1.08,4.90,1.38,1.12,1.41,8.15,1.04,1.22,3.40,1.14,1.55,2.95,1.09,20.80,1.33,6.70,1.05,1.26,4.10,1.01,1.62,2.20,1.10,1.48,9.40,1.03,1.31,2.75,1.19,15.60,1.07,3.15,1.42,1.08,1.24,5.22,1.06,1.39,7.80,1.13,1.50,2.05,1.02,12.45,1.17,3.20,1.88,1.09,4.56,1.11,1.28,2.33,1.04,6.45,1.02,1.35,8.20,1.10,1.65,2.15,1.08,10.50,1.40,1.15,4.30,1.90,1.01,5.12,1.20,3.80,1.05,1.45,1.12];
+(function(){
+  const ANC = 1704067200;
+  const CTD = 5.0, PCT = 3.0, GR = 0.06;
+  function rDur(v){ return CTD + Math.log(v)/GR + PCT; }
+  const RST_ARR = new Array(CRASH_SEQUENCE.length);
+  let TCT = 0;
+  for(let i=0;i<CRASH_SEQUENCE.length;i++){RST_ARR[i]=TCT;TCT+=rDur(CRASH_SEQUENCE[i]);}
+  let signalTimer = null;
+  function getRound(){
+    const s = Date.now()/1000;
+    const sc = ((s-ANC)%TCT+TCT)%TCT;
+    let lo=0,hi=RST_ARR.length-1,idx=0;
+    while(lo<=hi){const mid=(lo+hi)>>1;if(RST_ARR[mid]<=sc){idx=mid;lo=mid+1;}else hi=mid-1;}
+    return CRASH_SEQUENCE[idx];
+  }
+  function renderTransferredSignal(){
+    const el=document.getElementById('transferredSignal');
+    if(el) el.innerHTML=Number(getRound()).toFixed(2)+'<span>x</span>';
+  }
+  window.startTransferredSignal=function(){
+    renderTransferredSignal();
+    if(signalTimer) clearInterval(signalTimer);
+    signalTimer=setInterval(renderTransferredSignal,1000);
+  };
+  window.stopTransferredSignal=function(){if(signalTimer){clearInterval(signalTimer);signalTimer=null;}};
+  const colors=['#ff2bd6','#00f5ff','#ffe600','#8b5cf6','#39ff14','#ff6b00','#ff3158','#54a6ff'];
+  const layer=document.createElement('div');
+  layer.id='signalParticles';
+  layer.setAttribute('aria-hidden','true');
+  layer.draggable=false;
+  layer.style.cssText='position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:79;visibility:hidden;opacity:0;transition:opacity .2s ease;';
+  document.body.appendChild(layer);
+  for(let i=0;i<3;i++){
+    const p=document.createElement('i');
+    p.style.cssText='position:absolute;top:-12vh;left:'+(Math.random()*100)+'%;width:2px;height:22px;border-radius:99px;background:linear-gradient(180deg,transparent,'+colors[i%colors.length]+',#fff);opacity:.45;animation:rainbowFall '+(7+Math.random()*3)+'s linear '+(-Math.random()*8)+'s infinite;';
+    layer.appendChild(p);
+  }
+  const particleStyle=document.createElement('style');
+  particleStyle.textContent='#signalParticles.signal-particles-active{visibility:visible!important;opacity:1!important}#signalParticles i{will-change:transform;contain:paint;animation-play-state:paused!important}#signalParticles.signal-particles-active i{animation-play-state:running!important}@media(prefers-reduced-motion:reduce){#signalParticles i{animation:none!important;display:none!important}}';
+  document.head.appendChild(particleStyle);
+})();
+</script>
+<style>@keyframes rainbowFall{0%{transform:translateY(-8vh) rotate(0);opacity:0}8%{opacity:.8}100%{transform:translateY(115vh) rotate(390deg);opacity:0}}</style>
+
+<style id="low-end-performance-optimizations">
+/* Lightweight mode for lower-memory/mobile devices: keep the signal clear, reduce repaint cost. */
+#signalDashboard::before { animation:none !important; background-size:auto !important; opacity:.10; }
+.sig-plane { filter:none !important; animation:none !important; }
+.sig-orbit { box-shadow:inset 0 0 12px rgba(147,51,234,.14) !important; }
+.sig-ring { box-shadow:none !important; }
+.sig-value { animation:none !important; text-shadow:0 0 8px #00eaff,0 0 14px #ff00de !important; }
+.sig-contact.tg { animation:none !important; background-size:100% 100% !important; }
+#signalParticles i { box-shadow:none !important; }
+@media (max-width:480px) {
+  #signalDashboard { padding:18px 12px 16px !important; }
+  .sig-orbit { width:min(64vw,250px) !important; height:min(64vw,250px) !important; }
+}
+@media (prefers-reduced-motion:reduce) {
+  #signalDashboard *, #signalParticles i { animation:none !important; transition:none !important; }
+}
+</style>
+
+<style id="monochrome-dual-ring-upgrade">
+.sig-orbit {
+  isolation:isolate;
+  background:radial-gradient(circle,rgba(30,32,38,.98) 0%,rgba(12,13,17,.97) 63%,rgba(0,0,0,.9) 100%) !important;
+  box-shadow:inset 0 0 22px rgba(255,255,255,.08),0 0 14px rgba(255,255,255,.08) !important;
+}
+.sig-ring {
+  width:100% !important;height:100% !important;border:4px solid transparent !important;
+  background:linear-gradient(#0b0c10,#0b0c10) padding-box,
+    conic-gradient(from 0deg,#444 0deg,#fff 18deg,#777 35deg,#f8f8f8 52deg,#333 78deg,#bbb 110deg,#fff 132deg,#555 165deg,#eee 190deg,#444 225deg,#fff 250deg,#666 285deg,#fff 320deg,#444 360deg) border-box !important;
+  animation:chromeRingClockwise 3.2s linear infinite,chromeSparkle 1.8s ease-in-out infinite alternate !important;
+  box-shadow:0 0 5px rgba(255,255,255,.5),0 0 12px rgba(255,255,255,.17) !important;
+  will-change:transform,filter;
+}
+.sig-ring.r2 {
+  width:82% !important;height:82% !important;border-width:3px !important;
+  background:linear-gradient(#101115,#101115) padding-box,
+    conic-gradient(from 180deg,#777 0deg,#fff 22deg,#444 45deg,#ddd 70deg,#555 100deg,#fff 126deg,#666 158deg,#fff 185deg,#333 220deg,#eee 255deg,#555 290deg,#fff 325deg,#777 360deg) border-box !important;
+  animation:chromeRingCounter 4.4s linear infinite,chromeSparkle 1.35s ease-in-out infinite alternate-reverse !important;
+  box-shadow:0 0 6px rgba(255,255,255,.42),0 0 15px rgba(255,255,255,.14) !important;
+}
+.sig-ring.r3 {
+  width:65% !important;height:65% !important;border-width:2px !important;opacity:.65 !important;
+  background:linear-gradient(#101115,#101115) padding-box,
+    conic-gradient(#555,#fff,#888,#eee,#444,#fff,#555) border-box !important;
+  animation:chromeRingClockwise 8s linear infinite !important;
+  box-shadow:0 0 7px rgba(255,255,255,.16) !important;
+}
+.sig-value {text-shadow:0 0 8px #000,0 0 13px rgba(255,255,255,.62),0 0 23px rgba(255,255,255,.22) !important;}
+@keyframes chromeRingClockwise {to{transform:rotate(360deg)}}
+@keyframes chromeRingCounter {to{transform:rotate(-360deg)}}
+@keyframes chromeSparkle {0%{filter:brightness(.78);opacity:.78}45%{filter:brightness(1.15);opacity:1}65%{filter:brightness(.9);opacity:.88}100%{filter:brightness(1.5);opacity:1}}
+@media(prefers-reduced-motion:reduce) {
+  .sig-ring,.sig-ring.r2,.sig-ring.r3 {animation:none !important;}
+}
+</style>
+
+
+<style id="nx-zigzag-title-animation">
+#nxFallTitle{position:relative;display:flex;justify-content:center;align-items:center;flex-wrap:nowrap;width:100%;margin:3px 0 12px;padding:3px 0;overflow:visible;font-size:clamp(18px,5vw,26px);line-height:1.25;font-weight:1000;letter-spacing:1px;text-align:center;white-space:nowrap;user-select:none;-webkit-user-select:none;touch-action:pan-y;}
+#nxFallTitle span:not(.nx-space){display:inline-block;color:var(--nx-letter-color,#fff);text-shadow:0 0 5px currentColor,0 0 12px currentColor;animation:nxLetterDrop 2.8s cubic-bezier(.2,.75,.25,1) infinite;animation-delay:calc(var(--i,0) * 100ms);}
+#nxFallTitle span:nth-child(6n + 1){--nx-letter-color:#00f5ff}#nxFallTitle span:nth-child(6n + 2){--nx-letter-color:#a78bfa}#nxFallTitle span:nth-child(6n + 3){--nx-letter-color:#ff4fc8}#nxFallTitle span:nth-child(6n + 4){--nx-letter-color:#ffe66d}#nxFallTitle span:nth-child(6n + 5){--nx-letter-color:#54ffad}#nxFallTitle span:nth-child(6n){--nx-letter-color:#ff8a3d}
+#nxFallTitle .nx-space{width:.32em;flex:0 0 .32em}
+#nxFallTitle span:nth-child(1){--i:0}#nxFallTitle span:nth-child(2){--i:1}#nxFallTitle span:nth-child(4){--i:2}#nxFallTitle span:nth-child(5){--i:3}#nxFallTitle span:nth-child(6){--i:4}#nxFallTitle span:nth-child(7){--i:5}#nxFallTitle span:nth-child(8){--i:6}#nxFallTitle span:nth-child(9){--i:7}
+@keyframes nxLetterDrop{0%{opacity:0;transform:translate3d(0,-34px,0) scale(.82)}8%{opacity:1;transform:translate3d(-2px,3px,0) scale(1.08)}13%{transform:translate3d(2px,-1px,0) scale(.98)}20%,78%{opacity:1;transform:translate3d(0,0,0) scale(1)}91%{opacity:.92;transform:translate3d(0,0,0) scale(1.02)}100%{opacity:0;transform:translate3d(0,8px,0) scale(.96)}}
+#signalDashboard,#signalDashboard *{ -webkit-user-drag:none; }
+#signalDashboard{user-select:none;-webkit-user-select:none;touch-action:pan-y;}
+body.signal-fast-mode{animation:none!important;background:#050913!important;background-image:radial-gradient(ellipse at top,#101a36 0%,#050913 70%)!important;background-size:auto!important;}
+body.signal-fast-mode .phone-frame{overscroll-behavior:contain;}
+@media(prefers-reduced-motion:reduce){#nxFallTitle span:not(.nx-space){animation:none!important;color:#fff;text-shadow:none}}
+</style>
+
+
+<!-- ULTRA FAST MOBILE PATCH -->
+<style id="ultra-fast-mobile-patch">
+html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+body { touch-action:pan-y; }
+button, a, input, select, textarea, .apm-gamebtn, .apm-pm, .sig-contact { touch-action:manipulation; }
+input, textarea { font-size:16px; }
+@media (pointer:coarse), (max-width:700px) {
+  *, *::before, *::after { -webkit-tap-highlight-color:transparent; }
+  .phone-frame, .video-modal, .apm-wrap, .apm-modal, .apm-overlay {
+    -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+  }
+  .phone-frame { contain:layout style; }
+  body, body::before, body::after { animation:none !important; }
+  .header-title, .center-logo, .center-logo::after, .radar-ring, .orbit-dot, .orbit-dot-2,
+  #signalDashboard::before, #signalDashboard::after, .sig-title, .sig-plane,
+  .sig-orbit::after, .sig-ring, .sig-ring::before, .sig-ring::after, .sig-value,
+  .sig-contact, .sig-contact::before, #signalParticles i,
+  .apm-dot, .apm-spin {
+    animation:none !important; transition:none !important;
+  }
+  .sig-plane { filter:none !important; }
+  .sig-ring, .sig-orbit, .center-logo, .sig-contact, .header-title {
+    filter:none !important; box-shadow:none !important;
+  }
+  .sig-value { opacity:1 !important; text-shadow:0 0 7px rgba(255,255,255,.55) !important; }
+  #signalParticles { display:none !important; }
+  .btn, .btn-login, .btn-get, .btn-contact, .notice-box { transition:none !important; }
+  * { scroll-behavior:auto !important; }
+}
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+}
+</style>
+<script id="ultra-fast-interaction-patch">
+(function(){
+  'use strict';
+  var loginPending = false;
+  var loginButton = document.querySelector('.login-btn, button[onclick="handleLogin()"]');
+  var originalHandleLogin = window.handleLogin;
+  if (typeof originalHandleLogin === 'function') {
+    window.handleLogin = async function(){
+      if (loginPending) return;
+      loginPending = true;
+      if (loginButton) loginButton.setAttribute('aria-busy','true');
+      try { return await originalHandleLogin.apply(this, arguments); }
+      finally {
+        loginPending = false;
+        if (loginButton) loginButton.removeAttribute('aria-busy');
+      }
+    };
+  }
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) {
+      if (typeof window.stopTransferredSignal === 'function') window.stopTransferredSignal();
+    } else if (document.body.classList.contains('signal-fast-mode') && typeof window.startTransferredSignal === 'function') {
+      window.startTransferredSignal();
+    }
+  }, {passive:true});
+})();
+</script>
+
+<style id="nx-circle-letter-animation-fix">
+#loginLogoContainer .center-logo { animation:centerLogoAnimate 4s ease-in-out infinite alternate !important; }
+#loginLogoContainer .center-logo::after { animation:lightSweep 2.5s linear infinite !important; }
+#loginLogoContainer .nx-circle-letter { display:inline-block; position:relative; z-index:2; color:#fff; font-weight:1000; text-shadow:0 0 5px #fff,0 0 12px #00f5ff,0 0 20px #ff3eb5; animation:nxCircleLetterDrop 1.9s cubic-bezier(.2,.75,.25,1) infinite; will-change:transform,opacity; }
+#loginLogoContainer .nx-circle-n { animation-delay:0ms; }
+#loginLogoContainer .nx-circle-x { animation-delay:180ms; }
+@keyframes nxCircleLetterDrop { 0% { opacity:0; transform:translate3d(0,-20px,0) scale(.72); } 18% { opacity:1; transform:translate3d(0,2px,0) scale(1.12); } 28% { transform:translate3d(0,-1px,0) scale(.98); } 42%,82% { opacity:1; transform:translate3d(0,0,0) scale(1); } 100% { opacity:1; transform:translate3d(0,0,0) scale(1); } }
+@media (pointer:coarse), (max-width:700px) {
+  #loginLogoContainer .center-logo { animation:centerLogoAnimate 4s ease-in-out infinite alternate !important; }
+  #loginLogoContainer .center-logo::after { animation:lightSweep 2.5s linear infinite !important; }
+  #loginLogoContainer .nx-circle-letter { animation:nxCircleLetterDrop 1.9s cubic-bezier(.2,.75,.25,1) infinite !important; animation-delay:0ms; }
+  #loginLogoContainer .nx-circle-x { animation-delay:180ms !important; }
+}
+@media (prefers-reduced-motion:reduce) { #loginLogoContainer .nx-circle-letter { animation:nxCircleLetterDrop 1.9s ease-in-out infinite !important; } }
+</style>
+
+<style id="nx-user-panel-polish-v2">
+#loginControlsGroup{gap:12px}
+#loginControlsGroup .btn{min-height:58px;padding:16px 22px;border-radius:28px;font-size:15px;letter-spacing:1.1px;font-weight:750;box-shadow:0 5px 16px rgba(0,0,0,.22);opacity:1;transform-origin:center;will-change:transform,filter;animation:loginButtonPulse 1.65s ease-in-out infinite;transition:filter .2s ease,box-shadow .2s ease}
+#loginControlsGroup .btn:nth-child(2){animation-delay:.18s}
+#loginControlsGroup .btn:nth-child(3){animation-delay:.36s}
+#loginControlsGroup .btn:active{transform:scale(.96);filter:brightness(1.12)}
+#loginControlsGroup .btn-login{background:linear-gradient(110deg,#ffe47a,#ffb54a);box-shadow:0 5px 17px rgba(255,190,70,.28)}
+#loginControlsGroup .btn-get{background:linear-gradient(110deg,#8cf7bd,#9deaf4);box-shadow:0 5px 17px rgba(80,230,190,.24)}
+#loginControlsGroup .btn-contact{border-width:1px;background:rgba(10,22,40,.82);box-shadow:0 5px 16px rgba(0,243,255,.18)}
+@keyframes loginButtonPulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.065);filter:brightness(1.1)}}
+.sig-contact-toggle{width:74px;height:74px;margin:12px auto 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:50%;border:2px solid transparent;color:#fff;font-size:9px;font-weight:900;letter-spacing:1px;background:linear-gradient(#10152f,#10152f) padding-box,conic-gradient(from 0deg,#00f5ff,#ff36d1,#ffe45e,#72ff9e,#00f5ff) border-box;box-shadow:0 0 17px rgba(0,245,255,.2),inset 0 0 12px rgba(255,255,255,.04);cursor:pointer;animation:contactHeadGlow 3s linear infinite;transition:transform .2s ease}
+.sig-contact-toggle svg{width:29px;height:29px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px #00f5ff)}
+.sig-contact-toggle:active{transform:scale(.94)}
+.sig-contacts{width:100%;margin-top:8px;animation:contactPop .22s ease-out}
+.sig-contacts[hidden]{display:none!important}
+.sig-contact{min-height:46px}
+#signalDashboard{overflow:hidden auto}
+#signalDashboard:before{background-image:repeating-linear-gradient(135deg,transparent 0 19px,rgba(0,245,255,.06) 20px 22px,transparent 23px 42px),repeating-linear-gradient(45deg,transparent 0 29px,rgba(255,45,210,.045) 30px 32px,transparent 33px 58px),radial-gradient(circle at 12% 15%,#00f5ff 0 1.3px,transparent 2.8px),radial-gradient(circle at 83% 24%,#ff39d4 0 1.4px,transparent 3px),radial-gradient(circle at 28% 78%,#b8ff42 0 1.2px,transparent 2.8px),radial-gradient(circle at 74% 86%,#ffcf4a 0 1.3px,transparent 2.8px),radial-gradient(circle at 52% 48%,#a88bff 0 1px,transparent 2.5px)!important}
+@keyframes contactHeadGlow{0%,100%{filter:hue-rotate(0deg);box-shadow:0 0 12px rgba(0,245,255,.22)}50%{filter:hue-rotate(100deg);box-shadow:0 0 22px rgba(255,54,209,.35)}}
+@keyframes contactPop{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-height:680px){.sig-contact-toggle{width:62px;height:62px;margin-top:7px}.sig-contact-toggle svg{width:24px;height:24px}}
+@media(prefers-reduced-motion:reduce){.sig-contact-toggle,.sig-contacts,#loginControlsGroup .btn{animation:none!important}}
+
+body{
+  background: radial-gradient(ellipse at 50% 12%, #142c4a 0%, #0b172b 42%, #060c18 78%, #040812 100%) !important;
+  background-attachment: fixed !important;
+  animation: none !important;
+}
+.phone-frame{
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: rgba(80, 170, 220, .16) !important;
+  box-shadow: none !important;
+}
+#loginControlsGroup .btn{
+  animation: loginButtonPulseSoft 3.2s ease-in-out infinite !important;
+}
+#loginControlsGroup .btn:nth-child(2){animation-delay:.22s !important}
+#loginControlsGroup .btn:nth-child(3){animation-delay:.44s !important}
+@keyframes loginButtonPulseSoft{
+  0%,100%{transform:scale(1);filter:brightness(1)}
+  50%{transform:scale(1.022);filter:brightness(1.035)}
+}
+@media(prefers-reduced-motion:reduce){#loginControlsGroup .btn{animation:none!important}}
+</style>
+<script id="nx-contact-toggle-script">
+function toggleSignalContacts(){
+ const panel=document.getElementById('sigContactLinks');
+ const button=document.getElementById('sigContactToggle');
+ if(!panel||!button)return;
+ const willShow=panel.hidden; panel.hidden=!willShow; button.setAttribute('aria-expanded',String(willShow));
+}
+</script>
+
+
+<style id="nx-final-light-frame-bright-buttons">
+.phone-frame:not(.signal-active){
+  max-width:380px !important;
+  max-height:820px !important;
+  padding:21px 21px 29px !important;
+  border-width:1px !important;
+  border-color:rgba(120,190,255,.22) !important;
+}
+#loginControlsGroup .btn{
+  min-height:58px !important;
+  padding:16px 22px !important;
+  font-weight:800 !important;
+  animation:loginButtonPulseSoft 3.8s ease-in-out infinite !important;
+  box-shadow:0 5px 18px rgba(0,0,0,.20),0 0 10px rgba(0,245,255,.12) !important;
+}
+#loginControlsGroup .btn-login{
+  background:linear-gradient(110deg,#fff08a 0%,#ffd23f 48%,#ff9f43 100%) !important;
+  color:#201500 !important;
+  box-shadow:0 5px 19px rgba(255,190,45,.30),0 0 12px rgba(255,220,70,.18) !important;
+}
+#loginControlsGroup .btn-get{
+  background:linear-gradient(110deg,#8dffcb 0%,#45f0c0 48%,#55dcff 100%) !important;
+  color:#062a2b !important;
+  box-shadow:0 5px 19px rgba(55,245,195,.27),0 0 12px rgba(70,230,255,.17) !important;
+}
+#loginControlsGroup .btn-contact{
+  background:linear-gradient(110deg,#21d4fd 0%,#586bff 52%,#b34dff 100%) !important;
+  color:#fff !important;
+  border:1px solid rgba(255,255,255,.24) !important;
+  box-shadow:0 5px 19px rgba(80,100,255,.28),0 0 12px rgba(150,80,255,.18) !important;
+}
+#loginControlsGroup .btn:hover{filter:brightness(1.08) saturate(1.08) !important}
+@media(max-width:420px){.phone-frame:not(.signal-active){padding:18px 17px 25px !important}}
+@media(prefers-reduced-motion:reduce){#loginControlsGroup .btn{animation:none!important}}
+</style>
+
+
+<style id="nx-password-eye-and-trial">
+.nx-password-wrap{position:relative;width:100%;display:block}
+.nx-password-wrap .input-box{width:100%;padding-right:58px!important}
+.nx-password-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:1px solid rgba(0,245,255,.42);border-radius:12px;background:rgba(0,20,40,.86);color:#7ffaff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 10px rgba(0,245,255,.12)}
+.nx-password-toggle svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nx-password-toggle .nx-eye-closed{display:none}
+.nx-password-toggle.is-visible .nx-eye-open{display:none}
+.nx-password-toggle.is-visible .nx-eye-closed{display:block}
+.nx-password-toggle:active{transform:translateY(-50%) scale(.96)}
+</style>
+<script id="nx-password-eye-setup">
+(function(){var input=document.getElementById('input-pwd'),btn=document.getElementById('nxPasswordToggle');if(!input||!btn)return;btn.addEventListener('click',function(){var visible=input.type==='password';input.type=visible?'text':'password';btn.classList.toggle('is-visible',visible);btn.setAttribute('aria-label',visible?'পাসওয়ার্ড লুকান':'পাসওয়ার্ড দেখুন');btn.title=visible?'পাসওয়ার্ড লুকান':'পাসওয়ার্ড দেখুন';});})();
+</script>
+
+
+<style id="nx-big-sparkle-signal-dashboard">
+#signalDashboard{padding:18px 10px 24px !important; gap:2px !important;}
+#signalDashboard .sig-title{font-size:clamp(25px,7vw,34px) !important; letter-spacing:2.6px !important; margin:2px 0 12px !important; text-shadow:0 0 8px #00f5ff,0 0 18px #ff36d1,0 0 28px rgba(255,230,107,.55) !important;}
+#signalDashboard .sig-plane{font-size:clamp(29px,8vw,38px) !important; margin-bottom:7px !important; filter:drop-shadow(0 0 8px #00f5ff) drop-shadow(0 0 12px #ff36d1) !important;}
+#signalDashboard .sig-orbit{width:min(84vw,326px) !important;height:min(84vw,326px) !important;max-width:326px !important;max-height:326px !important;margin:0 auto 18px !important;flex-shrink:0 !important;filter:drop-shadow(0 0 12px rgba(0,245,255,.36)) drop-shadow(0 0 20px rgba(255,47,209,.24)) !important;background:radial-gradient(circle at 50% 50%,rgba(9,20,48,.99) 0%,rgba(9,12,31,.96) 54%,rgba(12,7,28,.80) 68%,transparent 73%) !important;}
+#signalDashboard .sig-orbit::before{inset:4% !important;border-width:2px !important;border-color:rgba(255,255,255,.38) !important;box-shadow:0 0 14px rgba(0,245,255,.48),0 0 28px rgba(255,54,209,.25),inset 0 0 28px rgba(0,245,255,.22) !important;}
+#signalDashboard .sig-orbit::after{inset:-2% !important;opacity:1 !important;filter:drop-shadow(0 0 7px rgba(0,245,255,.9)) drop-shadow(0 0 12px rgba(255,54,209,.55)) !important;animation:sigSpin 3.1s linear infinite !important;}
+#signalDashboard .sig-ring{box-shadow:0 0 10px rgba(0,245,255,.45),0 0 22px rgba(255,54,209,.25),inset 0 0 12px rgba(255,255,255,.13) !important;}
+#signalDashboard .sig-value{font-size:clamp(52px,14vw,78px) !important;letter-spacing:-1.5px !important;line-height:1.1 !important;text-shadow:0 0 5px #fff,0 0 14px #00eaff,0 0 26px #a855f7,0 0 42px rgba(255,47,209,.9),0 0 58px rgba(255,230,107,.4) !important;}
+#signalDashboard .sig-next{font-size:clamp(12px,3.7vw,16px) !important;letter-spacing:1.8px !important;margin:0 0 16px !important;text-shadow:0 0 8px #00f5ff,0 0 15px #ff36d1 !important;}
+#signalDashboard .sig-contacts{width:100% !important;max-width:340px !important;gap:12px !important;margin:4px auto 12px !important;}
+#signalDashboard .sig-contact{min-height:48px !important;font-size:13px !important;box-shadow:0 0 14px rgba(0,245,255,.22),0 0 20px rgba(255,54,209,.12) !important;}
+@media(max-width:360px){#signalDashboard .sig-orbit{width:min(82vw,290px) !important;height:min(82vw,290px) !important}#signalDashboard .sig-value{font-size:clamp(46px,13vw,64px) !important}}
+@media(max-height:680px){#signalDashboard{padding-top:10px !important}#signalDashboard .sig-orbit{width:min(72vw,285px) !important;height:min(72vw,285px) !important}#signalDashboard .sig-title{margin-bottom:7px !important}}
+</style>
+
+</body>
+</html>
+<style id="site-name-signal-message-style">
+#signalDashboard .sig-site-message{width:100%;max-width:560px;text-align:center;margin:0 auto 18px;padding:0 8px;}
+#signalDashboard .sig-site-name{font-size:clamp(25px,7.8vw,43px);font-weight:1000;line-height:1.15;letter-spacing:1.5px;overflow-wrap:anywhere;color:#fff;text-shadow:0 0 5px #fff,0 0 12px #00f5ff,0 0 24px #ff36d1,0 0 38px rgba(255,210,70,.8);animation:siteNameGlow 2.4s ease-in-out infinite alternate;}
+#signalDashboard .sig-site-bengali{margin-top:9px;font-size:clamp(18px,5.2vw,27px);font-weight:900;line-height:1.45;color:#ffe9a8;text-shadow:0 0 7px #ff9e00,0 0 15px #ff36d1,0 0 22px rgba(0,245,255,.75);}
+@keyframes siteNameGlow{from{filter:brightness(.95);transform:scale(.99)}to{filter:brightness(1.25);transform:scale(1.015)}}
+@media(prefers-reduced-motion:reduce){#signalDashboard .sig-site-name{animation:none!important}}
+</style>
